@@ -12,6 +12,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -24,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
 
 
 @Slf4j
@@ -50,8 +53,6 @@ public class Controller implements Initializable {
     @FXML
     private TextArea TextAreaDown;
     @FXML
-    private javafx.scene.control.ScrollBar ScrollBar;
-    @FXML
     private ListView dataClient;
     @FXML
     private ListView dataServer;
@@ -62,14 +63,29 @@ public class Controller implements Initializable {
     @FXML
     private Parent parent;
     @FXML
-    private CheckBox fff;
+    private ListView<String> status1;
     @FXML
-    private TextField test;
+    private ListView<String> status2;
+    @FXML
+    private MenuBar menuBar;
+
+    @FXML
+    private Menu menuFile;
+
+    @FXML
+    private Menu menuEdit;
+
+    @FXML
+    private Menu menuHelp;
 
 
 
+
+    // TODO: 29.10.2021 проблема со сценами заключается в том, что нужно что-то сделать с initialize,
+    //  потому что если мы переключаемся на другую сценуБ то если его нет на другой сцене,
+    //  то он выдает exept(и т.е. все функции и т.д. из него будут работать)
     public void switchScene1(ActionEvent actionEvent) throws IOException {
-        parent = FXMLLoader.load(getClass().getResource("Client1.fxml"));
+        parent = FXMLLoader.load(getClass().getResource("Author.fxml"));
         stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
         scene = new Scene(parent);
         stage.setScene(scene);
@@ -147,27 +163,36 @@ public class Controller implements Initializable {
                 }
         );
     }
-
-
-//    public void sendFile(javafx.event.ActionEvent actionEvent) throws IOException {
-//        fileServerView.setOnMouseClicked(e->{
-//            if(e.getClickCount()==1){
-//                String item = returnName2(fileClientView.getSelectionModel().getSelectedItem());
-//                Path newPath = currentDir.resolve(item);
-//                net.sendCommand(new FileMessage());
-//            }
-//        });
-//    }
-//    public void download(javafx.event.ActionEvent actionEvent) throws IOException {
-//        String fileName = listView1.getSelectionModel().getSelectedItem();
-//        net.sendCommand(new FileRequest(fileName));
-//    }
-
-    public String returnName1(String str) {
-        String[] words = str.split(" ");
-        return words[0];
+    public void sendFile(){
+        Upload.setOnMouseClicked(e->{
+            if (e.getClickCount()==1){
+                String item = fileClientView.getSelectionModel().getSelectedItem();
+                Path newPath = currentDir.resolve(item);
+                try {
+                    net.sendCommand(new FileMessage(newPath));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
+    // TODO: 30.10.2021 это наверное можно и не исправлять, (я думаю, что проблема с последовательностью действий)
+    //  тип когда скачиваешь на клиент вылазит exception,
+    //  НО ВСЕ ПРАВИЛЬНО СКАЧИВАЕТСЯ И ОТОБРАЖАЕТСЯ, А ПРИЛОЖЕНИЕ НЕ ПАДАЕТ
+    public void download(){
+        Download.setOnMouseClicked(e->{
+            if (e.getClickCount()==1){
+                String item = fileServerView.getSelectionModel().getSelectedItem();
+                net.sendCommand(new FileRequest(Path.of(item)));
 
+                try {
+                    refreshClientView();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+    }
     private void refreshServerView(List<String> names) {
         fileServerView.getItems().clear();
         fileServerView.getItems().addAll(names);
@@ -181,31 +206,15 @@ public class Controller implements Initializable {
                 .collect(Collectors.toList());
         fileClientView.getItems().addAll(names);
     }
-
     public void addNavigationListener() {
-        fileClientView.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) {
-                String item = fileClientView.getSelectionModel().getSelectedItem();
-                Path newPath = currentDir.resolve(item);
-                if (Files.isDirectory(newPath)) {
-                    currentDir = newPath;
 
-                    try {
-                        refreshClientView();
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
-                }
-            }
-        });
         fileServerView.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) {
-                String item = fileServerView.getSelectionModel().getSelectedItem();
-                if (returnName1(fileServerView.getSelectionModel().getSelectedItem()).equals("[Dir]")) {
-                    net.sendCommand(new PathInRequest(item));
-                }
+            if (e.getClickCount() == 1) {
+                TextAreaDown.setText("скачайте для просмотра..");
+
             }
         });
+        //пред показ файла
         fileClientView.setOnMouseClicked(e->{
             if (e.getClickCount() == 1) {
                 String item = fileClientView.getSelectionModel().getSelectedItem();
@@ -213,21 +222,18 @@ public class Controller implements Initializable {
 
                 //выводить содержимое файла
                 try {
-                    //todo когда буду делать реистрацию нужно пакпку рут делать для каждого
+                    //todo когда буду делать регистрацию нужно папку рут делать для каждого
+
+                    // TODO: 29.10.2021 решить проблему с русским языком в файлах
                     System.out.println( Files.readString(Paths.get("Client", "root", item)));
                     TextAreaDown.setText(Files.readString(Paths.get("Client", "root", item)));
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-                //
-
-
-                    // TODO: 28.10.2021  добавить еще окна(для других пользователей, регистрацию)
-
-
             }
         });
+
 
     }
 }

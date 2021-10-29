@@ -11,19 +11,25 @@ public class ListResponse extends Command {
 
     private final List<String> list;
 
-    public ListResponse(Path path) throws IOException {
-        list = Files.list(path)
-                .map(this::resolveFileType)
-                .collect(Collectors.toList());
-    }
+//    public ListResponse(Path path) throws IOException {
+//        list = Files.list(path)
+//                .map(this::resolveFileType)
+//                .collect(Collectors.toList());
+//    }
+//
+//    private String resolveFileType(Path path) {
+//        if (Files.isDirectory(path)) {
+//            return path.getFileName().toString();
+//        } else {
+//            return path.getFileName().toString();
+//        }
+//    }
+public ListResponse(Path path) throws IOException {
+    list = Files.list(path)
+            .map(p->p.getFileName().toString())
+            .collect(Collectors.toList());
+}
 
-    private String resolveFileType(Path path) {
-        if (Files.isDirectory(path)) {
-            return "[Dir]" + " " + path.getFileName().toString();
-        } else {
-            return "[File]" + " " + path.getFileName().toString();
-        }
-    }
     public List<String> getList() {
         return list;
     }

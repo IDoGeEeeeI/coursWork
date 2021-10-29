@@ -3,17 +3,19 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.ScrollBar?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="851.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Controller">
+<AnchorPane prefHeight="879.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Controller">
    <children>
-      <AnchorPane prefHeight="500.0" prefWidth="450.0">
+      <AnchorPane layoutY="28.0" prefHeight="500.0" prefWidth="450.0">
          <children>
             <HBox layoutX="5.0" prefHeight="498.0" prefWidth="450.0">
                <children>
@@ -44,19 +46,26 @@
                               <Font size="15.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="test" prefHeight="258.0" prefWidth="148.0" />
+                        <ListView fx:id="status1" prefHeight="460.0" prefWidth="148.0" />
                      </children>
                   </VBox>
                </children>
             </HBox>
          </children>
       </AnchorPane>
-      <AnchorPane layoutY="502.0" prefHeight="350.0" prefWidth="984.0">
+      <AnchorPane layoutY="530.0" prefHeight="350.0" prefWidth="984.0">
          <children>
-            <TextArea fx:id="TextAreaDown" prefHeight="350.0" prefWidth="984.0" promptText="окно просто для показа текста (редактировать нельзя)" />
+            <ScrollPane layoutX="6.0" layoutY="-2.0" prefHeight="346.0" prefWidth="988.0">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="340.0" prefWidth="986.0">
+                     <children>
+                        <TextArea fx:id="TextAreaDown" layoutX="-6.0" layoutY="-7.0" prefHeight="349.0" prefWidth="992.0" />
+                     </children></AnchorPane>
+              </content>
+            </ScrollPane>
          </children>
       </AnchorPane>
-      <AnchorPane layoutX="500.0" prefHeight="500.0" prefWidth="450.0">
+      <AnchorPane layoutX="500.0" layoutY="28.0" prefHeight="500.0" prefWidth="450.0">
          <children>
             <HBox layoutX="45.0" prefHeight="498.0" prefWidth="450.0">
                <children>
@@ -87,14 +96,33 @@
                               <Font size="15.0" />
                            </font>
                         </Label>
+                        <ListView fx:id="status2" prefHeight="460.0" prefWidth="148.0" />
                      </children>
                   </VBox>
                </children>
             </HBox>
-            <Button fx:id="Download" layoutX="-42.0" layoutY="235.0" mnemonicParsing="false" prefHeight="100.0" prefWidth="85.0" text="Download" />
-            <Button fx:id="Upload" layoutX="-42.0" layoutY="114.0" mnemonicParsing="false" onAction="#switchScene2" prefHeight="100.0" prefWidth="85.0" text="Upload" />
+            <Button fx:id="Download" layoutX="-42.0" layoutY="235.0" mnemonicParsing="false" onAction="#download" prefHeight="100.0" prefWidth="85.0" text="Download" />
+            <Button fx:id="Upload" layoutX="-42.0" layoutY="114.0" mnemonicParsing="false" onAction="#sendFile" prefHeight="100.0" prefWidth="85.0" text="Upload" />
          </children>
       </AnchorPane>
-      <ScrollBar fx:id="ScrollBar" layoutX="982.0" layoutY="501.0" orientation="VERTICAL" prefHeight="350.0" prefWidth="16.0" />
+      <MenuBar fx:id="menuBar" prefHeight="28.0" prefWidth="1000.0">
+        <menus>
+          <Menu fx:id="menuFile" mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu fx:id="menuEdit" mnemonicParsing="false" text="Edit">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu fx:id="menuHelp" mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
    </children>
 </AnchorPane>
