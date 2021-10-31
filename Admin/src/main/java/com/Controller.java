@@ -12,7 +12,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Controller implements Initializable {
 
-    private static Path currentDir = Paths.get("Client", "root");
+    private static Path currentDir = Paths.get("Admin", "root");
     private static Path serverDir;
     public AnchorPane mainScene;
 
@@ -77,29 +78,17 @@ public class Controller implements Initializable {
     @FXML
     private Button DeleteFileBut;
 
-//    public void switchScene1(ActionEvent actionEvent) throws IOException {
-//        parent = FXMLLoader.load(getClass().getResource("Author.fxml"));
-//        stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
-//        scene = new Scene(parent);
-//        stage.setScene(scene);
-//        stage.show();
-//    }
-//    public void switchScene2(ActionEvent actionEvent) throws IOException {
-//        parent = FXMLLoader.load(getClass().getResource("in.fxml"));
-//        stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
-//        scene = new Scene(parent);
-//        stage.setScene(scene);
-//        stage.show();
-//    }
+
+
 
     // TODO: 26.10.2021 тут есть методы для логина (нужно будет добавить пару классов в core для этого, т.е. добавить комманды для логина)
-    public void sendLoginAndPassword(ActionEvent actionEvent) {
-        String login = loginField.getText();
-        String password = passwordField.getText();
-        loginField.clear();
-        passwordField.clear();
-        net.sendCommand(new AuthRequest(login, password));
-    }
+//    public void sendLoginAndPassword(ActionEvent actionEvent) {
+//        String login = loginField.getText();
+//        String password = passwordField.getText();
+//        loginField.clear();
+//        passwordField.clear();
+//        net.sendCommand(new AuthRequest(login, password));
+//    }
 
     public void receiveArrayFiles(ActionEvent actionEvent) {
         net.sendCommand(new ListRequest());
@@ -136,22 +125,22 @@ public class Controller implements Initializable {
                         case PATH_RESPONSE:
                             PathResponse pathResponse = (PathResponse) cmd;
                             System.out.println(pathResponse);
-                        case AUTH_RESPONSE:
-                            AuthResponse authResponse = (AuthResponse) cmd;
-                            log.debug("AuthResponse {}", authResponse.getAuthStatus());
-                            if (authResponse.getAuthStatus()) {
-                                mainScene.setVisible(true);
-                                loginField.setVisible(false);
-                                passwordField.setVisible(false);
-                                Authorization.setVisible(false);
-                                net.sendCommand(new ListRequest());
-                            } else {
-                                //todo Warning
-                            }
-
-                            break;
-                        default:
-                            log.debug("Invalid command {}", cmd.getType());
+//                        case AUTH_RESPONSE:
+//                            AuthResponse authResponse = (AuthResponse) cmd;
+//                            log.debug("AuthResponse {}", authResponse.getAuthStatus());
+//                            if (authResponse.getAuthStatus()) {
+//                                mainScene.setVisible(true);
+//                                loginField.setVisible(false);
+//                                passwordField.setVisible(false);
+//                                Authorization.setVisible(false);
+//                                net.sendCommand(new ListRequest());
+//                            } else {
+//                                //todo Warning
+//                            }
+//
+//                            break;
+//                        default:
+//                            log.debug("Invalid command {}", cmd.getType());
                     }
                 }
         );

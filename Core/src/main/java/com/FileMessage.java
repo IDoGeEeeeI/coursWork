@@ -26,4 +26,5 @@ public class FileMessage extends Command {
     public CommandType getType() {
         return CommandType.FILE_MESSAGE;
     }
+
 }

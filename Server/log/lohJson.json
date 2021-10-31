@@ -1,0 +1,46 @@
+{
+  "arrAdmin":[
+        {
+            "Login": "test1",
+            "password": "1",
+            "data": {
+                "surname": "Иванов",
+                "name": "Виктор",
+                "gender": "MALE"
+            }
+        }
+],
+  "arrAuthor":[
+        {
+            "Login": "test2",
+            "password": "5",
+            "data": {
+                "surname": "Иванченко",
+                "name": "Виктор",
+                "gender": "MALE"
+            }
+        }
+],
+"arrChiefEditor":[
+        {
+            "Login": "test3",
+            "password": "9",
+            "data": {
+                "surname": "Попов",
+                "name": "Виктор",
+                "gender": "MALE"
+            }
+        }
+],
+"arrDepartmentEditor":[
+        {
+            "Login": "test3",
+            "password": "12",
+            "data": {
+                "surname": "Попов",
+                "name": "Виктор",
+                "gender": "MALE"
+            }
+        }
+]
+}

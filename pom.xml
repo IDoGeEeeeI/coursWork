@@ -12,6 +12,9 @@
         <module>Server</module>
         <module>Client</module>
         <module>Core</module>
+        <module>Admin</module>
+        <module>DepartmentEditor</module>
+        <module>ChiefEditor</module>
     </modules>
 
     <properties>
@@ -43,6 +46,13 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.68.Final</version>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20210307</version>
+        </dependency>
+
+
     </dependencies>
 
 </project>
