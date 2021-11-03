@@ -12,9 +12,6 @@
         <module>Server</module>
         <module>Client</module>
         <module>Core</module>
-        <module>Admin</module>
-        <module>DepartmentEditor</module>
-        <module>ChiefEditor</module>
     </modules>
 
     <properties>

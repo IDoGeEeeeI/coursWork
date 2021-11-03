@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
 
     private Path currentPath = Paths.get("Server","root");
-    private Path clientPath;
+    private Path clientPath ;
 
 
     @Override
@@ -68,14 +68,11 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 AuthRequest authRequest = (AuthRequest) cmd;
                 String login = authRequest.getLogin();
                 String password = authRequest.getPassword();
-                String post = authRequest.getPost();
                 JSONObject jsonObject = new JSONObject(Files.readString(Paths.get("Server", "log", "lohJson.json")));
                 AuthResponse authResponse = new AuthResponse();
-                // TODO: 03.11.2021 логин на серве сделал, но еще хз что буду делать с должностью(post),
-                //  осталось поддержать все на клиенте,
-                //  и добавить функцию регистрации для админа(пока что делаю только для сотрудников, для клиентов наверное сделаю отдельный json)
+                // TODO: 03.11.2021 Post - я сделаю так, то при определенном post будут скрываться кнопки,
                 if(jsonObject.has(login)){
-                    if(jsonObject.getJSONObject(login).getString(password).equals(password)){
+                    if(jsonObject.getJSONObject(login).getString("Password").equals(password)){
                         authResponse.setAuthStatus(true);
                         clientPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server", login);
                         if (!Files.exists(clientPath)) {

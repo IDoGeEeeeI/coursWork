@@ -23,18 +23,17 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-// TODO: 03.11.2021 !!!!!!!!!!!!Для админа нужно добавить возможность перемещаться между папками сервера 
-// TODO: 30.10.2021 короче, я добавлю 4 модуля для каждого актера, а запускать через другой
+// TODO: 03.11.2021 !!!!!!!!!!!!Для админа нужно добавить возможность перемещаться между папками сервера
+//  А также для глав отдела, которые например будут отправлять темы и публикации(они должны иметь доступ к папкам сотрудников, чтоб им отправлять)
 @Slf4j
 public class Controller implements Initializable {
 
     private static Path currentDir = Paths.get("Client", "root");
-    private static Path serverDir;
     public AnchorPane mainScene;
+    public AnchorPane sceneLog;
+    public  AnchorPane sceneMain;
 
-    public TextField loginField;
-    public TextField passwordField;
-    public Button Authorization;
+
     private Net net;
     @FXML
     public ListView<String> fileClientView;
@@ -44,6 +43,7 @@ public class Controller implements Initializable {
     private Button Upload;
     @FXML
     private Button Download;
+
     @FXML
     private URL location;
     @FXML
@@ -52,12 +52,6 @@ public class Controller implements Initializable {
     private ListView dataClient;
     @FXML
     private ListView dataServer;
-    @FXML
-    private Stage stage;
-    @FXML
-    private Scene scene;
-    @FXML
-    private Parent parent;
     @FXML
     private ListView<String> status1;
     @FXML
@@ -78,29 +72,20 @@ public class Controller implements Initializable {
     private MenuItem deleteFile;
     @FXML
     private Button DeleteFileBut;
+    @FXML
+    private Button DeleteFileServer;
+    @FXML
+    private  TextField loginText;
+    @FXML
+    private  TextField passwordText;
+    @FXML
+    private  Button buttIN;
 
-    //методы для переключения сцен(я думаю они не понадобятся)
-//    public void switchScene1(ActionEvent actionEvent) throws IOException {
-//        parent = FXMLLoader.load(getClass().getResource("Author.fxml"));
-//        stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
-//        scene = new Scene(parent);
-//        stage.setScene(scene);
-//        stage.show();
-//    }
-//    public void switchScene2(ActionEvent actionEvent) throws IOException {
-//        parent = FXMLLoader.load(getClass().getResource("in.fxml"));
-//        stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
-//        scene = new Scene(parent);
-//        stage.setScene(scene);
-//        stage.show();
-//    }
-
-    // TODO: 26.10.2021 тут есть методы для логина (нужно будет добавить пару классов в core для этого, т.е. добавить комманды для логина)
     public void sendLoginAndPassword(ActionEvent actionEvent) {
-        String login = loginField.getText();
-        String password = passwordField.getText();
-        loginField.clear();
-        passwordField.clear();
+        String login = loginText.getText();
+        String password = passwordText.getText();
+        loginText.clear();
+        passwordText.clear();
         net.sendCommand(new AuthRequest(login, password));
     }
 
@@ -113,20 +98,17 @@ public class Controller implements Initializable {
         log.debug("Update Client List");
     }
 
-
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            // TODO: 03.11.2021 тут добавить цикл что проверялось есть ли папка юзера, если нет, то создавалась(и все рефреши пихать в него) 
-            //тестовая часть для серва(просто быстрее запустить клиент)
-//            JSONObject jsonObject = new JSONObject(Files.readString(Paths.get("Client", "root", "lohJson.json")));
-//                    if(jsonObject.has("user1")){
-//
-//                    }else {
-//
-//                    }
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    sceneMain.setVisible(false);
+                    sceneLog.setVisible(true);
 
+                }
+            });
             refreshClientView();
             addNavigationListener();
         } catch (IOException e) {
@@ -150,18 +132,18 @@ public class Controller implements Initializable {
                             PathResponse pathResponse = (PathResponse) cmd;
                             System.out.println(pathResponse);
                         case AUTH_RESPONSE:
-//                            // TODO: 01.11.2021
+                            // TODO: 03.11.2021 сервер не падает, но вылетает ошибка:
+                            //  class com.PathResponse cannot be cast to class com.AuthResponse
+                            //  (com.PathResponse and com.AuthResponse are in unnamed module of loader 'app')
                             AuthResponse authResponse = (AuthResponse) cmd;
                             log.debug("AuthResponse {}", authResponse.getAuthStatus());
                             if (authResponse.getAuthStatus()) {
-//                                mainScene.setVisible(true);
-//                                loginField.setVisible(false);
-//                                passwordField.setVisible(false);
-//                                Authorization.setVisible(false);
-                                // TODO: 03.11.2021  нужно добавить окно логина, и тогда можно будет отключать и включать сцены после логина
+                                sceneMain.setVisible(true);//сцена рабочей среды
+                                sceneLog.setVisible(false);
                                 net.sendCommand(new ListRequest());
                             } else {
-                                //todo Warning тут я просто буду выводить в поле (окне логина), что не верный логи/пароль
+                                loginText.setText("неверный пароль и логин");
+                                loginText.setOnMouseClicked(e -> loginText.selectAll());
                             }
 //
                             break;
@@ -172,17 +154,6 @@ public class Controller implements Initializable {
         );
     }
     public void deleteFile(){
-        // TODO: 30.10.2021 ниже есть код для удаления с сервера, но я думаю, что нужно
-        //  сделать отдельную кнопку под него и только для админа или главного
-
-//        DeleteFileBut.setOnMouseClicked(e->{
-//            if(e.getClickCount()==1) {
-//                String itemS = fileServerView.getSelectionModel().getSelectedItem();
-//                net.sendCommand(new FileDeleteRequest(Path.of(itemS)));
-////
-//            }
-//        });
-
         //удаление с клиента
         DeleteFileBut.setOnMouseClicked(e->{
                 String itemC = fileClientView.getSelectionModel().getSelectedItem();
@@ -196,6 +167,15 @@ public class Controller implements Initializable {
                     }
                 }
             });
+    }
+    public void deleteFromServer(){
+        //удаление с сервера
+        DeleteFileBut.setOnMouseClicked(e->{
+            if(e.getClickCount()==1) {
+                String itemS = fileServerView.getSelectionModel().getSelectedItem();
+                net.sendCommand(new FileDeleteRequest(Path.of(itemS)));
+            }
+        });
     }
 
     public void sendFile(){
@@ -211,8 +191,6 @@ public class Controller implements Initializable {
             }
         });
     }
-
-    //  todo * и наверное можно дать возможность удалять с серва только админу
     public void download(){
         Download.setOnMouseClicked(e->{
             if (e.getClickCount()==1){
@@ -227,7 +205,6 @@ public class Controller implements Initializable {
             }
         });
     }
-    
     private void refreshServerView(List<String> names) {
         Platform.runLater(new Runnable() {
             @Override
@@ -237,7 +214,6 @@ public class Controller implements Initializable {
             }
         });
     }
-
     private void refreshClientView() throws IOException {
         Platform.runLater(new Runnable() {
               @Override
@@ -255,34 +231,27 @@ public class Controller implements Initializable {
               }
           });
     }
-
-
     public void addNavigationListener() {
         fileServerView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 1) {
                 TextAreaDown.setText("скачайте для просмотра..");
-
             }
         });
-
         //пред показ файла
         fileClientView.setOnMouseClicked(e->{
             if (e.getClickCount() == 1) {
                 String item = fileClientView.getSelectionModel().getSelectedItem();
                 TextAreaDown.setText(item);
-
                 //выводить содержимое файла
                 try {
                     // TODO: 29.10.2021 решить проблему с русским языком в файлах
                     System.out.println( Files.readString(Paths.get("Client", "root", item)));
                     TextAreaDown.setText(Files.readString(Paths.get("Client", "root", item)));
-
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             }
         });
-
 
     }
 }

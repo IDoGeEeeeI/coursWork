@@ -51,7 +51,7 @@ public class Net {
 
                 ChannelFuture future = bootstrap.connect("localhost", 8189).sync();
                 log.debug("Client Connected..");
-//                sendCommand(new ListRequest());todo это уже authResponse после того как войдет
+//                sendCommand(new ListRequest());
                 future.channel().closeFuture().sync(); // block
             } catch (Exception e) {
                 log.error("", e);

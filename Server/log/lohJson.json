@@ -9,7 +9,7 @@
       }
     },
     "user2": {
-      "password": "123",
+      "Password": "123",
       "Post": "Author",
       "data": {
         "surname": "Иванченко",
@@ -18,7 +18,7 @@
       }
     },
     "user3": {
-      "password": "123",
+      "Password": "123",
       "Post": "ChiefEditor",
       "data": {
         "surname": "Попов",
@@ -27,7 +27,7 @@
       }
     },
     "user4": {
-      "password": "123",
+      "Password": "123",
       "Post": "DepartmentEditor",
       "data": {
         "surname": "Степанов",
