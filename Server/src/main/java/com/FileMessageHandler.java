@@ -18,9 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
 
     private Path currentPath = Paths.get("Server","root");
-//    private Path currentPath;
     private Path clientPath;
-    DBAuthService service = new DBAuthService();
 
 
     @Override
@@ -30,7 +28,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Command cmd) throws Exception {
-//        System.out.println( Files.readString(Paths.get("Server", "log", "lohJson.json")));
+//        System.out.println( Files.readString(Paths.get("Server", "log", "lohJson.json")));//чтение json
         log.debug("Received command from client: {}", cmd.getType());
         switch (cmd.getType()) {
             case FILE_MESSAGE:
@@ -57,7 +55,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 ctx.writeAndFlush(new PathResponse(currentPath.toString()));
                 log.debug("Send list of files to the client");
                 break;
-            case FILE_DELETED_REQUEST:
+            case FILE_DELETED_REQUEST:// TODO: 03.11.2021 функция удаления с серва  //нужно для админа
                 FileDeleteRequest fileDeleteRequest = (FileDeleteRequest) cmd;
                 String fileN = fileDeleteRequest.getName();
 //                Path fileD = Paths.get(String.valueOf(currentPath), fileN);
@@ -70,58 +68,29 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 AuthRequest authRequest = (AuthRequest) cmd;
                 String login = authRequest.getLogin();
                 String password = authRequest.getPassword();
+                String post = authRequest.getPost();
+                JSONObject jsonObject = new JSONObject(Files.readString(Paths.get("Server", "log", "lohJson.json")));
                 AuthResponse authResponse = new AuthResponse();
-                if (service.findByLogin(login).equals(password)) {
-                    authResponse.setAuthStatus(true);
-                    clientPath = Paths.get("D:\\GB cloud storage\\Lesson_1\\cloud-storage-sep-2021\\server-sep-2021", login);
-                    if (!Files.exists(clientPath)) {
-                        Files.createDirectory(clientPath);
+                // TODO: 03.11.2021 логин на серве сделал, но еще хз что буду делать с должностью(post),
+                //  осталось поддержать все на клиенте,
+                //  и добавить функцию регистрации для админа(пока что делаю только для сотрудников, для клиентов наверное сделаю отдельный json)
+                if(jsonObject.has(login)){
+                    if(jsonObject.getJSONObject(login).getString(password).equals(password)){
+                        authResponse.setAuthStatus(true);
+                        clientPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server", login);
+                        if (!Files.exists(clientPath)) {
+                            Files.createDirectory(clientPath);
+                        }
+                        currentPath = clientPath;
+                    }else {
+                        authResponse.setAuthStatus(false);
                     }
-                    currentPath = clientPath;
-                } else {
+                }else {
                     authResponse.setAuthStatus(false);
                 }
                 ctx.writeAndFlush(authResponse);
+//            System.out.println( Files.readString(Paths.get("Client", "root", "lohJson.json")));//чтение json
                 break;
-//            case AUTH_REQUEST:
-//                AuthRequest authRequest = (AuthRequest) cmd;
-//                String login = authRequest.getLogin();
-//                String password = authRequest.getPassword();
-//                String post = authRequest.getPost();
-//                AuthResponse authResponse = new AuthResponse();
-//                // TODO: 30.10.2021 логиниться буду через Json file(тогда придется поменять немного AUTH)
-////                JSONObject jsonObject = new JSONObject(new FileReader(""));
-////                System.out.println( Files.readString(Paths.get("Server", "root", "lohJson.json")));
-//               File js = new File(Files.readString(Paths.get("Server", "log", "lohJson.json")));
-//               JSONObject jsonObject = new JSONObject(new File(Files.readString(Paths.get("Server", "log", "lohJson.json"))));
-//               switch (post) {
-//                   case "Admin":
-//                       if(jsonObject.getJSONObject("arrAdmin").getString("login").equals(login)
-//                               & jsonObject.getJSONObject("arrAdmin").getString("password").equals(password)){//тут нужно как-то разделить каждого юзера
-//
-//                           authResponse.setAuthStatus(true);
-//                           clientPath = Paths.get("D:\\GB cloud storage\\Lesson_1\\cloud-storage-sep-2021\\server-sep-2021", login);
-//                           if (!Files.exists(clientPath)) {
-//                               Files.createDirectory(clientPath);
-//                           }
-//                           currentPath = clientPath;
-//                       } else {
-//                           authResponse.setAuthStatus(false);
-//
-//                           // TODO: 30.10.2021 сделать так чтоб у каждого человека в json была своя папка на серве
-//                       }
-//                       ctx.writeAndFlush(new AuthResponse());
-//                       break;
-//                   case "Author":
-//                       break;
-//                   case "DepartmentEditor":
-//                       break;
-//                   case "ChiefEditor":
-//                       break;
-//               }
-
-//                ctx.writeAndFlush(authResponse);
-//                break;
             default:
                 log.debug("Invalid command {}", cmd.getType());
                 break;

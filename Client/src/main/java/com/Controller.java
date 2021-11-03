@@ -1,5 +1,6 @@
 package com;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.URL;
@@ -21,7 +23,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-
+// TODO: 03.11.2021 !!!!!!!!!!!!Для админа нужно добавить возможность перемещаться между папками сервера 
 // TODO: 30.10.2021 короче, я добавлю 4 модуля для каждого актера, а запускать через другой
 @Slf4j
 public class Controller implements Initializable {
@@ -77,6 +79,7 @@ public class Controller implements Initializable {
     @FXML
     private Button DeleteFileBut;
 
+    //методы для переключения сцен(я думаю они не понадобятся)
 //    public void switchScene1(ActionEvent actionEvent) throws IOException {
 //        parent = FXMLLoader.load(getClass().getResource("Author.fxml"));
 //        stage = (Stage) ((Node)actionEvent.getSource()).getScene().getWindow();
@@ -107,6 +110,7 @@ public class Controller implements Initializable {
 
     public void updateArrayFiles(ActionEvent actionEvent) throws IOException {
         refreshClientView();
+        log.debug("Update Client List");
     }
 
 
@@ -114,6 +118,15 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
+            // TODO: 03.11.2021 тут добавить цикл что проверялось есть ли папка юзера, если нет, то создавалась(и все рефреши пихать в него) 
+            //тестовая часть для серва(просто быстрее запустить клиент)
+//            JSONObject jsonObject = new JSONObject(Files.readString(Paths.get("Client", "root", "lohJson.json")));
+//                    if(jsonObject.has("user1")){
+//
+//                    }else {
+//
+//                    }
+
             refreshClientView();
             addNavigationListener();
         } catch (IOException e) {
@@ -137,18 +150,20 @@ public class Controller implements Initializable {
                             PathResponse pathResponse = (PathResponse) cmd;
                             System.out.println(pathResponse);
                         case AUTH_RESPONSE:
+//                            // TODO: 01.11.2021
                             AuthResponse authResponse = (AuthResponse) cmd;
                             log.debug("AuthResponse {}", authResponse.getAuthStatus());
                             if (authResponse.getAuthStatus()) {
-                                mainScene.setVisible(true);
-                                loginField.setVisible(false);
-                                passwordField.setVisible(false);
-                                Authorization.setVisible(false);
+//                                mainScene.setVisible(true);
+//                                loginField.setVisible(false);
+//                                passwordField.setVisible(false);
+//                                Authorization.setVisible(false);
+                                // TODO: 03.11.2021  нужно добавить окно логина, и тогда можно будет отключать и включать сцены после логина
                                 net.sendCommand(new ListRequest());
                             } else {
-                                //todo Warning
+                                //todo Warning тут я просто буду выводить в поле (окне логина), что не верный логи/пароль
                             }
-
+//
                             break;
                         default:
                             log.debug("Invalid command {}", cmd.getType());
@@ -158,7 +173,7 @@ public class Controller implements Initializable {
     }
     public void deleteFile(){
         // TODO: 30.10.2021 ниже есть код для удаления с сервера, но я думаю, что нужно
-        //  сделать отдельную кнопку под него
+        //  сделать отдельную кнопку под него и только для админа или главного
 
 //        DeleteFileBut.setOnMouseClicked(e->{
 //            if(e.getClickCount()==1) {
@@ -196,10 +211,8 @@ public class Controller implements Initializable {
             }
         });
     }
-    // TODO: 30.10.2021 это наверное можно и не исправлять, (я думаю, что проблема с последовательностью действий)
-    //  тип когда скачиваешь на клиент вылазит exception,
-    //  НО ВСЕ ПРАВИЛЬНО СКАЧИВАЕТСЯ И ОТОБРАЖАЕТСЯ, А ПРИЛОЖЕНИЕ НЕ ПАДАЕТ
-    //  * и наверное можно дать возможность удалять с серва только админу
+
+    //  todo * и наверное можно дать возможность удалять с серва только админу
     public void download(){
         Download.setOnMouseClicked(e->{
             if (e.getClickCount()==1){
@@ -215,19 +228,35 @@ public class Controller implements Initializable {
         });
     }
     
-    // TODO: 30.10.2021 при отправке и скачке ошибку направляют сюда!!!!но прилож не падает
     private void refreshServerView(List<String> names) {
-        fileServerView.getItems().clear();
-        fileServerView.getItems().addAll(names);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                fileServerView.getItems().clear();
+                fileServerView.getItems().addAll(names);
+            }
+        });
     }
 
     private void refreshClientView() throws IOException {
-        fileClientView.getItems().clear();
-        List<String> names = Files.list(currentDir)
-                .map(p->p.getFileName().toString())
-                .collect(Collectors.toList());
-        fileClientView.getItems().addAll(names);
+        Platform.runLater(new Runnable() {
+              @Override
+              public void run() {
+                  fileClientView.getItems().clear();
+                  List<String> names = null;
+                  try {
+                      names = Files.list(currentDir)
+                              .map(p->p.getFileName().toString())
+                              .collect(Collectors.toList());
+                  } catch (IOException e) {
+                      e.printStackTrace();
+                  }
+                  fileClientView.getItems().addAll(names);
+              }
+          });
     }
+
+
     public void addNavigationListener() {
         fileServerView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 1) {
@@ -244,8 +273,6 @@ public class Controller implements Initializable {
 
                 //выводить содержимое файла
                 try {
-                    //todo когда буду делать регистрацию нужно папку рут делать для каждого
-
                     // TODO: 29.10.2021 решить проблему с русским языком в файлах
                     System.out.println( Files.readString(Paths.get("Client", "root", item)));
                     TextAreaDown.setText(Files.readString(Paths.get("Client", "root", item)));
