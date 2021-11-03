@@ -3,16 +3,10 @@ package com;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 
 import java.io.*;
 import java.net.URL;
@@ -22,14 +16,18 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+// TODO: 04.11.2021 реализовать само приложение, где будут публикации
+
+// TODO: 04.11.2021 убрать все литералы (#Client/root)
+
+// TODO: 04.11.2021 ****************** можно еще добавить отмену последнего действия(например, отмена удаления)
 
 // TODO: 03.11.2021 !!!!!!!!!!!!Для админа нужно добавить возможность перемещаться между папками сервера
-//  А также для глав отдела, которые например будут отправлять темы и публикации(они должны иметь доступ к папкам сотрудников, чтоб им отправлять)
 @Slf4j
 public class Controller implements Initializable {
 
     private static Path currentDir = Paths.get("Client", "root");
-    public AnchorPane mainScene;
+    public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
 
@@ -49,7 +47,7 @@ public class Controller implements Initializable {
     @FXML
     private TextArea TextAreaDown;
     @FXML
-    private ListView dataClient;
+    private ListView dataClient;// TODO: 04.11.2021 дату еще не реализовал UPD и не буду, заменю на pathInfo чтоб там перемещаться
     @FXML
     private ListView dataServer;
     @FXML
@@ -105,6 +103,7 @@ public class Controller implements Initializable {
                 @Override
                 public void run() {
                     sceneMain.setVisible(false);
+                    sceneMain.setDisable(true);
                     sceneLog.setVisible(true);
 
                 }
@@ -138,14 +137,61 @@ public class Controller implements Initializable {
                             AuthResponse authResponse = (AuthResponse) cmd;
                             log.debug("AuthResponse {}", authResponse.getAuthStatus());
                             if (authResponse.getAuthStatus()) {
-                                sceneMain.setVisible(true);//сцена рабочей среды
-                                sceneLog.setVisible(false);
-                                net.sendCommand(new ListRequest());
+                                switch (authResponse.getPost()){
+                                    case "Admin":{//полный доступ
+                                        sceneMain.setDisable(false);
+                                        sceneMain.setVisible(true);//сцена рабочей среды
+                                        DeleteFileServer.setVisible(true);
+                                        DeleteFileServer.setDisable(false);
+                                        sceneLog.setVisible(false);
+                                        sceneLog.setDisable(true);
+                                        net.sendCommand(new ListRequest());
+                                        break;
+                                    }
+                                    case "Author":{//без удаления с сервера, доступ к папке редактора отдела(чтоб ему отправлять)
+                                        sceneMain.setDisable(false);
+                                        sceneMain.setVisible(true);//сцена рабочей среды
+                                        DeleteFileServer.setVisible(false);//отключение кнопки удаления с сервера
+                                        DeleteFileServer.setDisable(true);
+                                        sceneLog.setVisible(false);
+                                        sceneLog.setDisable(true);
+                                        net.sendCommand(new ListRequest());
+                                        break;
+                                    }
+                                    case "ChiefEditor":{//удаление только у ниже стоящих (автор, редактор отдела)
+                                        sceneMain.setDisable(false);
+                                        sceneMain.setVisible(true);//сцена рабочей среды
+                                        sceneLog.setVisible(false);
+                                        sceneLog.setDisable(true);
+                                        net.sendCommand(new ListRequest());
+                                        String a; // просто чтоб не светилось
+                                        // TODO: 04.11.2021 реализовать удаление
+                                        //у него будет еще поле, где он может выбирать кому из  сотрудников отправить
+                                        break;
+                                    }
+                                    case "DepartmentEditor":{//удаление только у ниже  стоящих (авторы)
+                                        sceneMain.setDisable(false);
+                                        sceneMain.setVisible(true);//сцена рабочей среды
+                                        sceneLog.setVisible(false);
+                                        sceneLog.setDisable(true);
+                                        net.sendCommand(new ListRequest());
+                                        int v;// просто чтоб не светилось
+                                        // TODO: 04.11.2021
+                                        //у него будет еще поле, где он может выбирать кому из  сотрудников отправить
+                                        break;
+                                    }
+                                    default:{
+                                        // TODO: 04.11.2021 когда буду делать реализацию обычного пользователя, то нужно case дописать
+                                        break;
+                                    }
+                                }
+//                                sceneMain.setVisible(true);//сцена рабочей среды
+//                                sceneLog.setVisible(false);
+//                                net.sendCommand(new ListRequest());
                             } else {
                                 loginText.setText("неверный пароль и логин");
                                 loginText.setOnMouseClicked(e -> loginText.selectAll());
                             }
-//
                             break;
                         default:
                             log.debug("Invalid command {}", cmd.getType());
@@ -170,7 +216,7 @@ public class Controller implements Initializable {
     }
     public void deleteFromServer(){
         //удаление с сервера
-        DeleteFileBut.setOnMouseClicked(e->{
+        DeleteFileServer.setOnMouseClicked(e->{
             if(e.getClickCount()==1) {
                 String itemS = fileServerView.getSelectionModel().getSelectedItem();
                 net.sendCommand(new FileDeleteRequest(Path.of(itemS)));
@@ -245,6 +291,12 @@ public class Controller implements Initializable {
                 //выводить содержимое файла
                 try {
                     // TODO: 29.10.2021 решить проблему с русским языком в файлах
+                    // TODO: 04.11.2021 короче, при вставке файла кодировка другая, а при вставке текста в файл - все норм
+                    //  *upd ворд файл не открывается совсем
+                    //  наверное будет проще реализовать написание текстов в самой проге
+                    //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
+
+//standardCharsets.UTF-8
                     System.out.println( Files.readString(Paths.get("Client", "root", item)));
                     TextAreaDown.setText(Files.readString(Paths.get("Client", "root", item)));
                 } catch (IOException ex) {

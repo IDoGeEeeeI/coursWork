@@ -1,8 +1,6 @@
 package com;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,7 +9,6 @@ import org.json.JSONObject;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.json.JsonObjectDecoder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,25 +52,27 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 ctx.writeAndFlush(new PathResponse(currentPath.toString()));
                 log.debug("Send list of files to the client");
                 break;
-            case FILE_DELETED_REQUEST:// TODO: 03.11.2021 функция удаления с серва  //нужно для админа
+            case FILE_DELETED_REQUEST:
                 FileDeleteRequest fileDeleteRequest = (FileDeleteRequest) cmd;
                 String fileN = fileDeleteRequest.getName();
-//                Path fileD = Paths.get(String.valueOf(currentPath), fileN);
                 File fileD = new File("Server/root/"+fileN);
                     fileD.delete();
                     System.out.println(fileN+ " deleted..");
                     ctx.writeAndFlush(new ListResponse(currentPath));
                     ctx.writeAndFlush(new PathResponse(currentPath.toString()));
             case AUTH_REQUEST:
-                AuthRequest authRequest = (AuthRequest) cmd;
+                AuthRequest authRequest = (AuthRequest) cmd; // TODO: 04.11.2021 Casting 'cmd' to 'AuthRequest' may produce 'ClassCastException' 
                 String login = authRequest.getLogin();
                 String password = authRequest.getPassword();
                 JSONObject jsonObject = new JSONObject(Files.readString(Paths.get("Server", "log", "lohJson.json")));
+                String post;
                 AuthResponse authResponse = new AuthResponse();
-                // TODO: 03.11.2021 Post - я сделаю так, то при определенном post будут скрываться кнопки,
                 if(jsonObject.has(login)){
                     if(jsonObject.getJSONObject(login).getString("Password").equals(password)){
+                        post  = jsonObject.getJSONObject(login).getString("Post");
+                        System.out.println(post);
                         authResponse.setAuthStatus(true);
+                        authResponse.setPost(post);
                         clientPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server", login);
                         if (!Files.exists(clientPath)) {
                             Files.createDirectory(clientPath);

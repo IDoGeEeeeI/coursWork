@@ -6,8 +6,8 @@ public class AuthRequest extends Command {
         this.password = password;
     }
 
-    private String login;
-    private String password;
+    private final String login;
+    private final String password;
 
     public String getLogin() {
         return login;
