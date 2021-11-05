@@ -8,5 +8,9 @@ public enum CommandType {
     PATH_RESPONSE,//Класс-команда для установки папки  *
     FILE_DELETED_REQUEST,//Класс-команда для запроса удаления с сервера
     AUTH_REQUEST,//Класс-команда для запроса на вход
-    AUTH_RESPONSE//Класс-команда для передачи данных аккаунта пользователя
+    AUTH_RESPONSE,//Класс-команда для передачи данных аккаунта пользователя
+    PATH_UP_REQUEST,
+    PATH_IN_REQUEST,
+    AUTH_OUT_RESPONSE,
+    AUTH_OUT_REQUEST
 }

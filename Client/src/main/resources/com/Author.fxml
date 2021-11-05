@@ -45,6 +45,8 @@
                      <children>
                         <Button fx:id="Upload" mnemonicParsing="false" onAction="#sendFile" prefHeight="11.0" prefWidth="159.0" text="Upload" />
                         <Button fx:id="DeleteFileBut" mnemonicParsing="false" onAction="#deleteFile" prefHeight="7.0" prefWidth="159.0" text="Delete" />
+                           <Button fx:id="upButtonClient" mnemonicParsing="false" onAction="#clientPathUp" prefHeight="26.0" prefWidth="142.0" text="up" />
+                           <Button fx:id="downButtonClient" mnemonicParsing="false" onAction="#clientPathIn" prefHeight="26.0" prefWidth="170.0" text="down" />
                      </children>
                   </VBox>
                </children>
@@ -71,6 +73,8 @@
                      <children>
                         <Button fx:id="Download" mnemonicParsing="false" onAction="#download" prefHeight="13.0" prefWidth="159.0" text="Download" />
                            <Button fx:id="DeleteFileServer" mnemonicParsing="false" onAction="#deleteFromServer" prefHeight="26.0" prefWidth="159.0" text="Delete" />
+                           <Button fx:id="upButtonServer" mnemonicParsing="false" onAction="#upServer" prefHeight="26.0" prefWidth="142.0" text="up" />
+                           <Button fx:id="downButtonServer" mnemonicParsing="false" onAction="#inServer" prefHeight="26.0" prefWidth="170.0" text="down" />
                      </children></VBox>
                   <VBox prefHeight="200.0" prefWidth="161.3" style="-fx-border-color: #fff;">
                      <children>
@@ -98,9 +102,9 @@
       </AnchorPane>
       <MenuBar fx:id="menuBar" prefHeight="28.0" prefWidth="1000.0">
         <menus>
-          <Menu fx:id="menuFile" mnemonicParsing="false" text="File">
+          <Menu fx:id="menuFile" mnemonicParsing="false" text="Client">
             <items>
-              <MenuItem fx:id="backLogin" mnemonicParsing="false" text="back to login" />
+              <MenuItem fx:id="backLogin" onAction="#logOut" mnemonicParsing="false" text="logOut" />
             </items>
           </Menu>
           <Menu fx:id="menuEdit" mnemonicParsing="false" text="Edit">
@@ -108,9 +112,10 @@
               <MenuItem fx:id="deleteFile" mnemonicParsing="false" text="Delete" />
             </items>
           </Menu>
-          <Menu fx:id="menuHelp" mnemonicParsing="false" text="Help">
+          <Menu fx:id="menuHelp" mnemonicParsing="false" text="Update">
             <items>
-              <MenuItem fx:id="help" mnemonicParsing="false" text="About" />
+              <MenuItem fx:id="updateServeMenu" onAction="#updateServer" mnemonicParsing="false" text="Server" />
+                     <MenuItem fx:id="updateClientmenu" onAction="#updateClient" mnemonicParsing="false" text="Client" />
             </items>
           </Menu>
         </menus>

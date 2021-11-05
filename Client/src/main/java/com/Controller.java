@@ -13,16 +13,14 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 // TODO: 04.11.2021 реализовать само приложение, где будут публикации
 
-// TODO: 04.11.2021 убрать все литералы (#Client/root)
-
 // TODO: 04.11.2021 ****************** можно еще добавить отмену последнего действия(например, отмена удаления)
 
-// TODO: 03.11.2021 !!!!!!!!!!!!Для админа нужно добавить возможность перемещаться между папками сервера
 @Slf4j
 public class Controller implements Initializable {
 
@@ -30,9 +28,9 @@ public class Controller implements Initializable {
     public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
-
-
     private Net net;
+    private final Date date = new Date();
+
     @FXML
     public ListView<String> fileClientView;
     @FXML
@@ -41,19 +39,14 @@ public class Controller implements Initializable {
     private Button Upload;
     @FXML
     private Button Download;
-
     @FXML
     private URL location;
     @FXML
     private TextArea TextAreaDown;
     @FXML
-    private ListView dataClient;// TODO: 04.11.2021 дату еще не реализовал UPD и не буду, заменю на pathInfo чтоб там перемещаться
+    private ListView<String> dataClient;// TODO: 04.11.2021 дату еще не реализовал
     @FXML
-    private ListView dataServer;
-    @FXML
-    private ListView<String> status1;
-    @FXML
-    private ListView<String> status2;
+    private ListView<String> dataServer;
     @FXML
     private MenuBar menuBar;
     @FXML
@@ -65,7 +58,9 @@ public class Controller implements Initializable {
     @FXML
     private MenuItem backLogin;
     @FXML
-    private MenuItem help;
+    private MenuItem updateServerMenu;
+    @FXML
+    private MenuItem updateClientMenu;
     @FXML
     private MenuItem deleteFile;
     @FXML
@@ -78,23 +73,15 @@ public class Controller implements Initializable {
     private  TextField passwordText;
     @FXML
     private  Button buttIN;
+    @FXML
+    private  Button upButtonClient;
+    @FXML
+    private  Button downButtonClient;
+    @FXML
+    private  Button upButtonServer;
+    @FXML
+    private  Button downButtonServer;
 
-    public void sendLoginAndPassword(ActionEvent actionEvent) {
-        String login = loginText.getText();
-        String password = passwordText.getText();
-        loginText.clear();
-        passwordText.clear();
-        net.sendCommand(new AuthRequest(login, password));
-    }
-
-    public void receiveArrayFiles(ActionEvent actionEvent) {
-        net.sendCommand(new ListRequest());
-    }
-
-    public void updateArrayFiles(ActionEvent actionEvent) throws IOException {
-        refreshClientView();
-        log.debug("Update Client List");
-    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -102,10 +89,8 @@ public class Controller implements Initializable {
             Platform.runLater(new Runnable() {
                 @Override
                 public void run() {
-                    sceneMain.setVisible(false);
-                    sceneMain.setDisable(true);
-                    sceneLog.setVisible(true);
-
+                    disableScene(sceneMain);
+                    turnOnScene(sceneLog);
                 }
             });
             refreshClientView();
@@ -115,97 +100,150 @@ public class Controller implements Initializable {
         }
         net = Net.getInstance(cmd -> {
                     switch (cmd.getType()) {
-                        case LIST_RESPONSE:
+                        case LIST_RESPONSE -> {
                             ListResponse listResponse = (ListResponse) cmd;
                             refreshServerView(listResponse.getList());
-                            break;
-                        case FILE_MESSAGE:
+                        }
+                        case FILE_MESSAGE -> {
                             FileMessage fileMessage = (FileMessage) cmd;
                             Files.write(
                                     currentDir.resolve(fileMessage.getName()),
                                     fileMessage.getBytes()
                             );
                             refreshClientView();
-                            break;
-                        case PATH_RESPONSE:
+                        }
+                        case PATH_RESPONSE -> {
                             PathResponse pathResponse = (PathResponse) cmd;
-                            System.out.println(pathResponse);
-                        case AUTH_RESPONSE:
-                            // TODO: 03.11.2021 сервер не падает, но вылетает ошибка:
-                            //  class com.PathResponse cannot be cast to class com.AuthResponse
-                            //  (com.PathResponse and com.AuthResponse are in unnamed module of loader 'app')
+                            log.debug(String.valueOf(pathResponse));
+                        }
+                        case AUTH_RESPONSE -> {
                             AuthResponse authResponse = (AuthResponse) cmd;
                             log.debug("AuthResponse {}", authResponse.getAuthStatus());
                             if (authResponse.getAuthStatus()) {
-                                switch (authResponse.getPost()){
-                                    case "Admin":{//полный доступ
-                                        sceneMain.setDisable(false);
-                                        sceneMain.setVisible(true);//сцена рабочей среды
-                                        DeleteFileServer.setVisible(true);
-                                        DeleteFileServer.setDisable(false);
-                                        sceneLog.setVisible(false);
-                                        sceneLog.setDisable(true);
+                                switch (authResponse.getPost()) {
+                                    case "Admin" -> {//полный доступ
+                                        turnOnScene(sceneMain);
+                                        disableScene(sceneLog);
                                         net.sendCommand(new ListRequest());
-                                        break;
                                     }
-                                    case "Author":{//без удаления с сервера, доступ к папке редактора отдела(чтоб ему отправлять)
-                                        sceneMain.setDisable(false);
-                                        sceneMain.setVisible(true);//сцена рабочей среды
-                                        DeleteFileServer.setVisible(false);//отключение кнопки удаления с сервера
-                                        DeleteFileServer.setDisable(true);
-                                        sceneLog.setVisible(false);
-                                        sceneLog.setDisable(true);
+                                    case "Author" -> {//без удаления с сервера, доступ к папке редактора отдела(чтоб ему отправлять)
+                                        turnOnScene(sceneMain);
+                                        disableButt(DeleteFileServer);
+                                        disableButt(upButtonServer);
+                                        disableButt(downButtonServer);
+                                        disableScene(sceneLog);
                                         net.sendCommand(new ListRequest());
-                                        break;
                                     }
-                                    case "ChiefEditor":{//удаление только у ниже стоящих (автор, редактор отдела)
-                                        sceneMain.setDisable(false);
-                                        sceneMain.setVisible(true);//сцена рабочей среды
-                                        sceneLog.setVisible(false);
-                                        sceneLog.setDisable(true);
+                                    case "ChiefEditor" -> {//удаление только у ниже стоящих (автор, редактор отдела)
+                                        turnOnScene(sceneMain);
+                                        disableScene(sceneLog);
                                         net.sendCommand(new ListRequest());
                                         String a; // просто чтоб не светилось
                                         // TODO: 04.11.2021 реализовать удаление
                                         //у него будет еще поле, где он может выбирать кому из  сотрудников отправить
-                                        break;
                                     }
-                                    case "DepartmentEditor":{//удаление только у ниже  стоящих (авторы)
-                                        sceneMain.setDisable(false);
-                                        sceneMain.setVisible(true);//сцена рабочей среды
-                                        sceneLog.setVisible(false);
-                                        sceneLog.setDisable(true);
+                                    case "DepartmentEditor" -> {//удаление только у ниже стоящих (авторы)
+                                        turnOnScene(sceneMain);
+                                        disableScene(sceneLog);
                                         net.sendCommand(new ListRequest());
                                         int v;// просто чтоб не светилось
                                         // TODO: 04.11.2021
                                         //у него будет еще поле, где он может выбирать кому из  сотрудников отправить
-                                        break;
                                     }
-                                    default:{
+                                    default -> {
                                         // TODO: 04.11.2021 когда буду делать реализацию обычного пользователя, то нужно case дописать
-                                        break;
                                     }
                                 }
-//                                sceneMain.setVisible(true);//сцена рабочей среды
-//                                sceneLog.setVisible(false);
-//                                net.sendCommand(new ListRequest());
                             } else {
                                 loginText.setText("неверный пароль и логин");
                                 loginText.setOnMouseClicked(e -> loginText.selectAll());
                             }
-                            break;
-                        default:
-                            log.debug("Invalid command {}", cmd.getType());
+                        }
+                        case AUTH_OUT_RESPONSE -> {
+                            AuthOutResponse authOutResponse = new AuthOutResponse();
+                            log.debug("AuthResponse {}", authOutResponse.getAuthOutStatus());
+                            disableScene(sceneMain);
+                            turnOnScene(sceneLog);
+                        }
+                        default -> log.debug("Invalid command {}", cmd.getType());
                     }
                 }
         );
     }
+    public void disableScene(AnchorPane a){
+        a.setDisable(true);
+        a.setVisible(false);
+    }
+    public void turnOnScene(AnchorPane a){
+        a.setDisable(false);
+        a.setVisible(true);
+    }
+    public void disableButt(Button a){
+        a.setDisable(true);
+        a.setVisible(false);
+    }
+    public void turnOnButt(Button a){
+        a.setDisable(false);
+        a.setVisible(true);
+    }
+    public  void logOut(ActionEvent actionEvent){
+        net.sendCommand(new AuthOutRequest());
+    }
+
+    public void sendLoginAndPassword(ActionEvent actionEvent) {
+        String login = loginText.getText();
+        String password = passwordText.getText();
+        loginText.clear();
+        passwordText.clear();
+        net.sendCommand(new AuthRequest(login, password));
+    }
+
+    public void updateServer(ActionEvent actionEvent) {
+        net.sendCommand(new ListRequest());
+    }
+
+    public void updateClient(ActionEvent actionEvent) throws IOException {
+        refreshClientView();
+        log.debug("Update Client List");
+    }
+
+    public void  upServer() {
+        upButtonServer.setOnMouseClicked(e->{
+            net.sendCommand(new PathUpRequest());
+        });
+    }
+    public void  inServer() {
+        upButtonServer.setOnMouseClicked(e->{
+            String item = fileServerView.getSelectionModel().getSelectedItem();
+            net.sendCommand(new PathInRequest(item));
+        });
+    }
+    public void clientPathUp(ActionEvent actionEvent) throws IOException {
+        if (currentDir.getParent() != null) {
+            fileClientView.getItems().clear();
+            currentDir = currentDir.getParent();
+            refreshClientView();
+        }
+    }
+    public void  clientPathIn(ActionEvent actionEvent){
+
+        String item = fileClientView.getSelectionModel().getSelectedItem();
+        currentDir = currentDir.resolve(item);
+        try {
+            refreshClientView();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
     public void deleteFile(){
         //удаление с клиента
         DeleteFileBut.setOnMouseClicked(e->{
                 String itemC = fileClientView.getSelectionModel().getSelectedItem();
-                File file = new File("Client/root/"+itemC);
+                File file = new File(String.valueOf(currentDir.resolve(itemC)));
                 if(file.delete()){
-                    System.out.println(file+ " deleted..");
+                    log.debug(file+ " deleted..");
                     try {
                         refreshClientView();
                     } catch (IOException ex) {
@@ -277,6 +315,8 @@ public class Controller implements Initializable {
               }
           });
     }
+
+
     public void addNavigationListener() {
         fileServerView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 1) {
@@ -285,25 +325,32 @@ public class Controller implements Initializable {
         });
         //пред показ файла
         fileClientView.setOnMouseClicked(e->{
+
             if (e.getClickCount() == 1) {
                 String item = fileClientView.getSelectionModel().getSelectedItem();
-                TextAreaDown.setText(item);
-                //выводить содержимое файла
-                try {
-                    // TODO: 29.10.2021 решить проблему с русским языком в файлах
-                    // TODO: 04.11.2021 короче, при вставке файла кодировка другая, а при вставке текста в файл - все норм
-                    //  *upd ворд файл не открывается совсем
-                    //  наверное будет проще реализовать написание текстов в самой проге
-                    //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
+//                Path item = Path.of(fileClientView.getSelectionModel().getSelectedItem());
+
+                if (!Files.isDirectory(Path.of(item))) {
+                    TextAreaDown.setText(String.valueOf(item));
+                    //выводить содержимое файла
+                    try {
+                        // TODO: 29.10.2021 решить проблему с русским языком в файлах
+                        // TODO: 04.11.2021 короче, при вставке файла кодировка другая, а при вставке текста в файл - все норм
+                        //  *upd ворд файл не открывается совсем
+                        //  наверное будет проще реализовать написание текстов в самой проге
+                        //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
 
 //standardCharsets.UTF-8
-                    System.out.println( Files.readString(Paths.get("Client", "root", item)));
-                    TextAreaDown.setText(Files.readString(Paths.get("Client", "root", item)));
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                        log.debug(String.valueOf(currentDir.resolve(item)));
+                        TextAreaDown.setText(Files.readString(currentDir.resolve(item)));// TODO: 05.11.2021 проблема в том что он dir распознает как file
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }else {
+                    TextAreaDown.setText(item);
+                    log.debug(String.valueOf(currentDir.resolve(item)));
                 }
             }
         });
-
     }
 }
