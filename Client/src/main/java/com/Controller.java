@@ -18,7 +18,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
-// TODO: 06.11.2021  !!!!!!!!!!!!!!!!!!!!!!!!!!!! обновил мак ос теперь все к хуям крашится при нажати на поле ввода логина или куда либо
+// TODO: 06.11.2021 UPD я отключил все  Platform.runLater..., в логах из-за них и крашилось приложение,
+//  так что пока что будет куча ошибок при отправке и т.п., но за-то оно будет работать
 
 
 // TODO: 04.11.2021 реализовать само приложение, где будут публикации
@@ -318,18 +319,18 @@ public class Controller implements Initializable {
         });
     }
     private void refreshServerView(List<String> names) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
+//        Platform.runLater(new Runnable() {
+//            @Override
+//            public void run() {
                 fileServerView.getItems().clear();
                 fileServerView.getItems().addAll(names);
-            }
-        });
+//            }
+//        });
     }
     private void refreshClientView() throws IOException {
-        Platform.runLater(new Runnable() {
-              @Override
-              public void run() {
+//        Platform.runLater(new Runnable() {
+//              @Override
+//              public void run() {
                   fileClientView.getItems().clear();
                   List<String> names = null;
                   try {
@@ -340,8 +341,8 @@ public class Controller implements Initializable {
                       e.printStackTrace();
                   }
                   fileClientView.getItems().addAll(names);
-              }
-          });
+//              }
+//          });
     }
 
 

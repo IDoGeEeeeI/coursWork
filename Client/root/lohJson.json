@@ -1,0 +1,38 @@
+{
+    "user1":{
+      "Password": "123",
+      "Post": "Admin",
+      "data": {
+        "surname": "Иванов",
+        "name": "Антон",
+        "gender": "MALE"
+      }
+    },
+    "user2": {
+      "password": "123",
+      "Post": "Author",
+      "data": {
+        "surname": "Иванченко",
+        "name": "Виктор",
+        "gender": "MALE"
+      }
+    },
+    "user3": {
+      "password": "123",
+      "Post": "ChiefEditor",
+      "data": {
+        "surname": "Попов",
+        "name": "Виктор",
+        "gender": "MALE"
+      }
+    },
+    "user4": {
+      "password": "123",
+      "Post": "DepartmentEditor",
+      "data": {
+        "surname": "Степанов",
+        "name": "Алексей",
+        "gender": "MALE"
+      }
+    }
+}
