@@ -14,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
 
-    private Path serverPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server");
+    private final Path serverPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server");
     private Path currentPath = Paths.get("Server","root");
-    private Path logPath = Paths.get("Server", "log");
+    private final Path logPath = Paths.get("Server", "log");
     private Path clientPath ;
-    private String jsonFile = "lohJson.json";
+    private final String jsonFile = "lohJson.json";
 
 
 
@@ -102,12 +102,12 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 }
             }
             case PATH_UP_REQUEST -> {
-                if (currentPath.getParent() != null) {
-                    if (currentPath.equals(clientPath)) {//блок по правам // TODO: 05.11.2021 !!!
-                        log.debug("Above the client's folder , it is not necessary to rise");
-                    } else {
+                if (currentPath.getParent() != null) {//убрал права, так ка кнопка доступна только для админа
+//                    if (currentPath.equals(clientPath)) {//блок по правам
+//                        log.debug("Above the client's folder , it is not necessary to rise");
+//                    } else {
                         currentPath = currentPath.getParent();
-                    }
+//                    }
                 }
                 log.debug("Send list of files and current directory to the client");
                 ctx.writeAndFlush(new ListResponse(currentPath));

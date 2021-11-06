@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,14 +18,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+// TODO: 06.11.2021  !!!!!!!!!!!!!!!!!!!!!!!!!!!! обновил мак ос теперь все к хуям крашится при нажати на поле ввода логина или куда либо
+
+
 // TODO: 04.11.2021 реализовать само приложение, где будут публикации
+// TODO: 06.11.2021 ****************** после входа, или до можно выводить окно, где будешь устанавливать root папку
 
 // TODO: 04.11.2021 ****************** можно еще добавить отмену последнего действия(например, отмена удаления)
 
 @Slf4j
 public class Controller implements Initializable {
 
-    private static Path currentDir = Paths.get("Client", "root");
+    private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Client", "root");
     public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
@@ -39,8 +44,6 @@ public class Controller implements Initializable {
     private Button Upload;
     @FXML
     private Button Download;
-    @FXML
-    private URL location;
     @FXML
     private TextArea TextAreaDown;
     @FXML
@@ -81,18 +84,25 @@ public class Controller implements Initializable {
     private  Button upButtonServer;
     @FXML
     private  Button downButtonServer;
+    @FXML
+    private TextArea textAreaForClient;
+    // TODO: 06.11.2021    long lastModified(): возвращает время последнего изменения файла или каталога.
+    //  Значение представляет количество миллисекунд, прошедших с начала эпохи Unix
+
+    @FXML
+    private Button saveTextButton;
 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
+//            Platform.runLater(new Runnable() {
+//                @Override
+//                public void run() {
                     disableScene(sceneMain);
                     turnOnScene(sceneLog);
-                }
-            });
+//                }
+//            });
             refreshClientView();
             addNavigationListener();
         } catch (IOException e) {
@@ -137,22 +147,22 @@ public class Controller implements Initializable {
                                     case "ChiefEditor" -> {//удаление только у ниже стоящих (автор, редактор отдела)
                                         turnOnScene(sceneMain);
                                         disableScene(sceneLog);
+                                        disableButt(upButtonServer);
+                                        disableButt(downButtonServer);
                                         net.sendCommand(new ListRequest());
                                         String a; // просто чтоб не светилось
-                                        // TODO: 04.11.2021 реализовать удаление
-                                        //у него будет еще поле, где он может выбирать кому из  сотрудников отправить
+                                        // TODO: 04.11.2021 UPD реализовать кнопку, которая будет удалять файл с серва и отправлять обратно автору
                                     }
                                     case "DepartmentEditor" -> {//удаление только у ниже стоящих (авторы)
                                         turnOnScene(sceneMain);
                                         disableScene(sceneLog);
+                                        disableButt(upButtonServer);
+                                        disableButt(downButtonServer);
                                         net.sendCommand(new ListRequest());
                                         int v;// просто чтоб не светилось
-                                        // TODO: 04.11.2021
-                                        //у него будет еще поле, где он может выбирать кому из  сотрудников отправить
+                                        // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт"
                                     }
-                                    default -> {
-                                        // TODO: 04.11.2021 когда буду делать реализацию обычного пользователя, то нужно case дописать
-                                    }
+                                    default -> log.debug("Invalid authCommand {}", cmd.getType());
                                 }
                             } else {
                                 loginText.setText("неверный пароль и логин");
@@ -198,34 +208,53 @@ public class Controller implements Initializable {
         net.sendCommand(new AuthRequest(login, password));
     }
 
-    public void updateServer(ActionEvent actionEvent) {
+    public void updateServer() {
         net.sendCommand(new ListRequest());
     }
 
-    public void updateClient(ActionEvent actionEvent) throws IOException {
+    public void updateClient() throws IOException {
         refreshClientView();
         log.debug("Update Client List");
     }
+    public void saveButtJSON(){//для админа
+// TODO: 06.11.2021 boolean createNewFile(): создает новый файл по пути, который передан в конструктор.
+//  В случае удачного создания возвращает true, иначе false
+       String write = TextAreaDown.getText();
+        File newFile = new File(String.valueOf(currentDir),write);
+        try
+        {
+            boolean created = newFile.createNewFile();
+            if(created)
+                log.debug("File has been created");
+        }
+        catch(IOException ex){
+            log.debug(ex.getMessage());
+        }
+    }
 
-    public void  upServer() {
+
+    public  void  addUser(){
+
+    }
+    public void  upServer() {//только для админа
         upButtonServer.setOnMouseClicked(e->{
             net.sendCommand(new PathUpRequest());
         });
     }
-    public void  inServer() {
+    public void  inServer() {//только для админа
         upButtonServer.setOnMouseClicked(e->{
             String item = fileServerView.getSelectionModel().getSelectedItem();
             net.sendCommand(new PathInRequest(item));
         });
     }
-    public void clientPathUp(ActionEvent actionEvent) throws IOException {
+    public void clientPathUp() throws IOException {
         if (currentDir.getParent() != null) {
             fileClientView.getItems().clear();
             currentDir = currentDir.getParent();
             refreshClientView();
         }
     }
-    public void  clientPathIn(ActionEvent actionEvent){
+    public void  clientPathIn(){
 
         String item = fileClientView.getSelectionModel().getSelectedItem();
         currentDir = currentDir.resolve(item);
@@ -234,7 +263,6 @@ public class Controller implements Initializable {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
     }
 
     public void deleteFile(){
@@ -325,12 +353,11 @@ public class Controller implements Initializable {
         });
         //пред показ файла
         fileClientView.setOnMouseClicked(e->{
-
             if (e.getClickCount() == 1) {
                 String item = fileClientView.getSelectionModel().getSelectedItem();
 //                Path item = Path.of(fileClientView.getSelectionModel().getSelectedItem());
 
-                if (!Files.isDirectory(Path.of(item))) {
+                if (!Files.isDirectory(Path.of(item))) {//не работает
                     TextAreaDown.setText(String.valueOf(item));
                     //выводить содержимое файла
                     try {
@@ -350,6 +377,13 @@ public class Controller implements Initializable {
                     TextAreaDown.setText(item);
                     log.debug(String.valueOf(currentDir.resolve(item)));
                 }
+            }
+        });
+        saveTextButton.setOnMouseClicked(e->{
+            if(e.getClickCount()==1){
+                String item = TextAreaDown.getText();
+                File tempFile = new File(String.valueOf(currentDir));
+
             }
         });
     }
