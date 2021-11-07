@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="Scene" prefHeight="653.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Controller">
+<AnchorPane fx:id="Scene" prefHeight="653.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Controller">
    <children>
       <AnchorPane fx:id="sceneMain" prefHeight="200.0" prefWidth="200.0">
       <AnchorPane layoutY="28.0" prefHeight="283.0" prefWidth="455.0">
@@ -61,7 +61,8 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="340.0" prefWidth="986.0">
                      <children>
                         <TextArea fx:id="TextAreaDown" layoutX="-4.0" layoutY="-7.0" prefHeight="349.0" prefWidth="994.0" />
-                           <Button fx:id="saveTextButton" onAction="#saveButtJSON" layoutX="917.0" layoutY="291.0" mnemonicParsing="false" prefHeight="38.0" prefWidth="54.0" text="save" />
+                           <Button fx:id="saveText" onAction="#updateDateClient" layoutX="920.0" layoutY="276.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="52.0" text="save" />
+                           <Button fx:id="cleanText" layoutX="920.0" layoutY="222.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="52.0" text="clean" />
                      </children></AnchorPane>
               </content>
             </ScrollPane>

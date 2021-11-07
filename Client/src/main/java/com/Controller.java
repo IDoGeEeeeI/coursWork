@@ -10,27 +10,27 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
-// TODO: 06.11.2021 UPD я отключил все  Platform.runLater..., в логах из-за них и крашилось приложение,
-//  так что пока что будет куча ошибок при отправке и т.п., но за-то оно будет работать
-
-
 // TODO: 04.11.2021 реализовать само приложение, где будут публикации
-// TODO: 06.11.2021 ****************** после входа, или до можно выводить окно, где будешь устанавливать root папку
 
-// TODO: 04.11.2021 ****************** можно еще добавить отмену последнего действия(например, отмена удаления)
+
+//  ****************** добалю, когда все сделаю(для последующих версий программ )
+//  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
+//  ****************** после входа, или до можно выводить окно, где будешь устанавливать root папку
+//  ****************** можно еще добавить отмену последнего действия(например, отмена удаления)
 
 @Slf4j
 public class Controller implements Initializable {
 
-    private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Client", "root");
+    private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");//тут можно потом просто поставить папку на рабочем столе
     public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
@@ -87,24 +87,27 @@ public class Controller implements Initializable {
     private  Button downButtonServer;
     @FXML
     private TextArea textAreaForClient;
-    // TODO: 06.11.2021    long lastModified(): возвращает время последнего изменения файла или каталога.
-    //  Значение представляет количество миллисекунд, прошедших с начала эпохи Unix
-
+//    @FXML
+//    private Button saveTextButton;
     @FXML
-    private Button saveTextButton;
+    private Button saveText;
+    @FXML
+    private Button cleanText;
+
 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-//            Platform.runLater(new Runnable() {
-//                @Override
-//                public void run() {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
                     disableScene(sceneMain);
                     turnOnScene(sceneLog);
-//                }
-//            });
+                }
+            });
             refreshClientView();
+            dataUpdate();
             addNavigationListener();
         } catch (IOException e) {
             e.printStackTrace();
@@ -215,6 +218,7 @@ public class Controller implements Initializable {
 
     public void updateClient() throws IOException {
         refreshClientView();
+        dataUpdate();
         log.debug("Update Client List");
     }
     public void saveButtJSON(){//для админа
@@ -237,6 +241,7 @@ public class Controller implements Initializable {
     public  void  addUser(){
 
     }
+
     public void  upServer() {//только для админа
         upButtonServer.setOnMouseClicked(e->{
             net.sendCommand(new PathUpRequest());
@@ -253,6 +258,7 @@ public class Controller implements Initializable {
             fileClientView.getItems().clear();
             currentDir = currentDir.getParent();
             refreshClientView();
+            dataUpdate();
         }
     }
     public void  clientPathIn(){
@@ -261,6 +267,7 @@ public class Controller implements Initializable {
         currentDir = currentDir.resolve(item);
         try {
             refreshClientView();
+            dataUpdate();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -275,6 +282,7 @@ public class Controller implements Initializable {
                     log.debug(file+ " deleted..");
                     try {
                         refreshClientView();
+                        dataUpdate();
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -312,6 +320,7 @@ public class Controller implements Initializable {
 
                 try {
                     refreshClientView();
+                    dataUpdate();
                 } catch (IOException ex) {
                    ex.printStackTrace();
                 }
@@ -319,18 +328,18 @@ public class Controller implements Initializable {
         });
     }
     private void refreshServerView(List<String> names) {
-//        Platform.runLater(new Runnable() {
-//            @Override
-//            public void run() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
                 fileServerView.getItems().clear();
                 fileServerView.getItems().addAll(names);
-//            }
-//        });
+            }
+        });
     }
     private void refreshClientView() throws IOException {
-//        Platform.runLater(new Runnable() {
-//              @Override
-//              public void run() {
+        Platform.runLater(new Runnable() {
+              @Override
+              public void run() {
                   fileClientView.getItems().clear();
                   List<String> names = null;
                   try {
@@ -341,11 +350,63 @@ public class Controller implements Initializable {
                       e.printStackTrace();
                   }
                   fileClientView.getItems().addAll(names);
-//              }
-//          });
+              }
+
+
+        });
+    }
+    private List<String> DirORFile(){//выводит только файлы(нужен для того, чтоб правильно выводить в поле)
+        List<String> results = new ArrayList<>();
+        File[] files = new File(String.valueOf(currentDir)).listFiles();
+        for (File file : files) {
+            if (file.isFile()) {
+                results.add(file.getName());
+            }
+        }
+        return  results;
+    }
+    // TODO: 06.11.2021    long lastModified(): возвращает время последнего изменения файла или каталога.
+    //  Значение представляет количество миллисекунд, прошедших с начала эпохи Unix
+
+    private void dataUpdate(){// TODO: 06.11.2021 я устал, короче нужно фиксить, выводит больше времени чем нужно + время не правильное, нужно еще сделать только для файлов, для папок время не нужно 
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                dataClient.getItems().clear();
+                List<String> results = new ArrayList<>();
+                File[] files = new File(String.valueOf(currentDir)).listFiles();
+                for (File file : files) {
+                    if (file.isFile()) {
+                        long time;
+
+                time = file.lastModified();
+                Date date1 = new java.util.Date(time*1000L);
+                SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("HH:mm:ss");
+                String format = sdf1.format(date1);
+                results.add(format);
+
+
+//                        results.add(String.valueOf(file.lastModified()));
+                    }
+                    dataClient.getItems().addAll(results);
+                }
+//                long sunriseHour;
+//                sunriseHour = jsonObject.getJSONObject("sys").getLong("sunrise");
+//                // convert seconds to milliseconds
+//                Date date1 = new java.util.Date(sunriseHour*1000L);
+//                // the format of your date
+//                SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("HH:mm:ss");
+//                // give a timezone reference for formatting (see comment at the bottom)
+////                                    sdf1.setTimeZone(java.util.TimeZone.getTimeZone("GMT-3"));
+//                String formattedDateSUNRISE = sdf1.format(date1);
+                }
+        });
     }
 
-
+    public void updateDateClient(ActionEvent actionEvent) {
+        dataUpdate();
+        log.debug("Update Date Client List");
+    }
     public void addNavigationListener() {
         fileServerView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 1) {
@@ -356,36 +417,28 @@ public class Controller implements Initializable {
         fileClientView.setOnMouseClicked(e->{
             if (e.getClickCount() == 1) {
                 String item = fileClientView.getSelectionModel().getSelectedItem();
-//                Path item = Path.of(fileClientView.getSelectionModel().getSelectedItem());
-
-                if (!Files.isDirectory(Path.of(item))) {//не работает
-                    TextAreaDown.setText(String.valueOf(item));
-                    //выводить содержимое файла
-                    try {
-                        // TODO: 29.10.2021 решить проблему с русским языком в файлах
-                        // TODO: 04.11.2021 короче, при вставке файла кодировка другая, а при вставке текста в файл - все норм
-                        //  *upd ворд файл не открывается совсем
-                        //  наверное будет проще реализовать написание текстов в самой проге
-                        //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
-
+                for(String str : DirORFile()) {
+                    if(str.contains(item)) {
+                        //выводить содержимое файла
+                        try {
+                            // TODO: 29.10.2021 решить проблему с русским языком в файлах
 //standardCharsets.UTF-8
-                        log.debug(String.valueOf(currentDir.resolve(item)));
-                        TextAreaDown.setText(Files.readString(currentDir.resolve(item)));// TODO: 05.11.2021 проблема в том что он dir распознает как file
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
+                            log.debug(String.valueOf(currentDir.resolve(item)));
+                            TextAreaDown.setText(Files.readString(currentDir.resolve(item)));
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     }
-                }else {
-                    TextAreaDown.setText(item);
-                    log.debug(String.valueOf(currentDir.resolve(item)));
+
                 }
             }
         });
-        saveTextButton.setOnMouseClicked(e->{
+        cleanText.setOnMouseClicked(e->{
             if(e.getClickCount()==1){
-                String item = TextAreaDown.getText();
-                File tempFile = new File(String.valueOf(currentDir));
-
+                TextAreaDown.setText("");
             }
         });
     }
+
+
 }
