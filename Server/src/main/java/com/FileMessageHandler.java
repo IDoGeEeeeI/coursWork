@@ -4,6 +4,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.json.JSONObject;
 
 
@@ -14,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
 
-    private final Path serverPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server");
+    private final Path serverPath = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server");
     private Path currentPath = Paths.get("Server","root");
     private final Path logPath = Paths.get("Server", "log");
     private Path clientPath ;
@@ -117,6 +121,16 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 AuthOutResponse authOutResponse = new AuthOutResponse();
                 authOutResponse.setAuthOutStatus(false);
                 ctx.writeAndFlush(new AuthOutResponse());
+            }
+            case UPDATE_DATE_FILE_REQUEST -> {
+                List<String> results = new ArrayList<>();
+                File[] files = new File(String.valueOf(currentPath)).listFiles();
+                for (File file : files) {
+                    SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+                    String format = sdf1.format(file.lastModified());
+                    results.add(format);
+                }
+                ctx.writeAndFlush(new UpdateDateFileResponse(results));
             }
             default -> log.debug("Invalid command {}", cmd.getType());
         }

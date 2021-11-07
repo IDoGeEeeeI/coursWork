@@ -31,11 +31,11 @@ import java.util.stream.Collectors;
 public class Controller implements Initializable {
 
     private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");//тут можно потом просто поставить папку на рабочем столе
+    // (сделать метод, который при запуске программы проверяет есть ли папка и создает если нужно)
     public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
     private Net net;
-    private final Date date = new Date();
 
     @FXML
     public ListView<String> fileClientView;
@@ -48,7 +48,7 @@ public class Controller implements Initializable {
     @FXML
     private TextArea TextAreaDown;
     @FXML
-    private ListView<String> dataClient;// TODO: 04.11.2021 дату еще не реализовал
+    private ListView<String> dataClient;
     @FXML
     private ListView<String> dataServer;
     @FXML
@@ -87,8 +87,6 @@ public class Controller implements Initializable {
     private  Button downButtonServer;
     @FXML
     private TextArea textAreaForClient;
-//    @FXML
-//    private Button saveTextButton;
     @FXML
     private Button saveText;
     @FXML
@@ -108,6 +106,7 @@ public class Controller implements Initializable {
             });
             refreshClientView();
             dataUpdate();
+
             addNavigationListener();
         } catch (IOException e) {
             e.printStackTrace();
@@ -117,6 +116,7 @@ public class Controller implements Initializable {
                         case LIST_RESPONSE -> {
                             ListResponse listResponse = (ListResponse) cmd;
                             refreshServerView(listResponse.getList());
+                            net.sendCommand(new UpdateDateFileRequest());
                         }
                         case FILE_MESSAGE -> {
                             FileMessage fileMessage = (FileMessage) cmd;
@@ -124,6 +124,7 @@ public class Controller implements Initializable {
                                     currentDir.resolve(fileMessage.getName()),
                                     fileMessage.getBytes()
                             );
+                            dataUpdate();
                             refreshClientView();
                         }
                         case PATH_RESPONSE -> {
@@ -164,7 +165,7 @@ public class Controller implements Initializable {
                                         disableButt(downButtonServer);
                                         net.sendCommand(new ListRequest());
                                         int v;// просто чтоб не светилось
-                                        // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт"
+                                        // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт" (кнопка сохранить)
                                     }
                                     default -> log.debug("Invalid authCommand {}", cmd.getType());
                                 }
@@ -178,6 +179,10 @@ public class Controller implements Initializable {
                             log.debug("AuthResponse {}", authOutResponse.getAuthOutStatus());
                             disableScene(sceneMain);
                             turnOnScene(sceneLog);
+                        }
+                        case UPDATE_DATE_FILE_RESPONSE->{
+                            UpdateDateFileResponse updateDateFileResponse = (UpdateDateFileResponse) cmd;
+                            dateServerUpdate(updateDateFileResponse.getList());
                         }
                         default -> log.debug("Invalid command {}", cmd.getType());
                     }
@@ -221,7 +226,7 @@ public class Controller implements Initializable {
         dataUpdate();
         log.debug("Update Client List");
     }
-    public void saveButtJSON(){//для админа
+    public void saveButtJSON(){//для админа(для добавления клиентов)
 // TODO: 06.11.2021 boolean createNewFile(): создает новый файл по пути, который передан в конструктор.
 //  В случае удачного создания возвращает true, иначе false
        String write = TextAreaDown.getText();
@@ -237,10 +242,10 @@ public class Controller implements Initializable {
         }
     }
 
-
     public  void  addUser(){
-
     }
+
+
 
     public void  upServer() {//только для админа
         upButtonServer.setOnMouseClicked(e->{
@@ -298,7 +303,6 @@ public class Controller implements Initializable {
             }
         });
     }
-
     public void sendFile(){
         Upload.setOnMouseClicked(e->{
             if (e.getClickCount()==1){
@@ -365,48 +369,44 @@ public class Controller implements Initializable {
         }
         return  results;
     }
-    // TODO: 06.11.2021    long lastModified(): возвращает время последнего изменения файла или каталога.
-    //  Значение представляет количество миллисекунд, прошедших с начала эпохи Unix
 
-    private void dataUpdate(){// TODO: 06.11.2021 я устал, короче нужно фиксить, выводит больше времени чем нужно + время не правильное, нужно еще сделать только для файлов, для папок время не нужно 
+    private void dataUpdate(){
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 dataClient.getItems().clear();
                 List<String> results = new ArrayList<>();
                 File[] files = new File(String.valueOf(currentDir)).listFiles();
-                for (File file : files) {
-                    if (file.isFile()) {
-                        long time;
-
-                time = file.lastModified();
-                Date date1 = new java.util.Date(time*1000L);
-                SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("HH:mm:ss");
-                String format = sdf1.format(date1);
-                results.add(format);
-
-
-//                        results.add(String.valueOf(file.lastModified()));
+                    for (File file : files) {
+                    SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+                    String format = sdf1.format(file.lastModified());
+                        System.out.println(format);
+                    results.add(format);
                     }
-                    dataClient.getItems().addAll(results);
-                }
-//                long sunriseHour;
-//                sunriseHour = jsonObject.getJSONObject("sys").getLong("sunrise");
-//                // convert seconds to milliseconds
-//                Date date1 = new java.util.Date(sunriseHour*1000L);
-//                // the format of your date
-//                SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("HH:mm:ss");
-//                // give a timezone reference for formatting (see comment at the bottom)
-////                                    sdf1.setTimeZone(java.util.TimeZone.getTimeZone("GMT-3"));
-//                String formattedDateSUNRISE = sdf1.format(date1);
+                dataClient.getItems().addAll(results);
                 }
         });
     }
+    private  void dateServerUpdate(List<String> names){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                dataServer.getItems().clear();
+                dataServer.getItems().addAll(names);
+            }
+        });
+    }
 
-    public void updateDateClient(ActionEvent actionEvent) {
+    public void updateDateClient(ActionEvent actionEvent) {//для кнопок(если будут нужны)
         dataUpdate();
         log.debug("Update Date Client List");
     }
+    public  void updateDateServer(ActionEvent actionEvent){
+        net.sendCommand(new UpdateDateFileRequest());
+        log.debug("Update Date Server List");
+    }
+
+
     public void addNavigationListener() {
         fileServerView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 1) {
