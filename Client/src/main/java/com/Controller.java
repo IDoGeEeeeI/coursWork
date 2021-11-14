@@ -13,14 +13,15 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 // TODO: 04.11.2021 реализовать само приложение, где будут публикации
-
 
 //  ****************** добалю, когда все сделаю(для последующих версий программ )
 //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
@@ -36,6 +37,10 @@ public class Controller implements Initializable {
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
     private Net net;
+
+    private SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+    private Date date = new Date();
+//System.out.println(sdf.format(date));
 
     @FXML
     public ListView<String> fileClientView;
@@ -105,7 +110,7 @@ public class Controller implements Initializable {
                 }
             });
             refreshClientView();
-            dataUpdate();
+            dataClientUpdate();
 
             addNavigationListener();
         } catch (IOException e) {
@@ -124,7 +129,7 @@ public class Controller implements Initializable {
                                     currentDir.resolve(fileMessage.getName()),
                                     fileMessage.getBytes()
                             );
-                            dataUpdate();
+                            dataClientUpdate();
                             refreshClientView();
                         }
                         case PATH_RESPONSE -> {
@@ -141,7 +146,7 @@ public class Controller implements Initializable {
                                         disableScene(sceneLog);
                                         net.sendCommand(new ListRequest());
                                     }
-                                    case "Author" -> {//без удаления с сервера, доступ к папке редактора отдела(чтоб ему отправлять)
+                                    case "Author" -> {
                                         turnOnScene(sceneMain);
                                         disableButt(DeleteFileServer);
                                         disableButt(upButtonServer);
@@ -149,23 +154,24 @@ public class Controller implements Initializable {
                                         disableScene(sceneLog);
                                         net.sendCommand(new ListRequest());
                                     }
-                                    case "ChiefEditor" -> {//удаление только у ниже стоящих (автор, редактор отдела)
+                                    case "ChiefEditor" -> {
                                         turnOnScene(sceneMain);
                                         disableScene(sceneLog);
-                                        disableButt(upButtonServer);
-                                        disableButt(downButtonServer);
+//                                        disableButt(upButtonServer);
+//                                        disableButt(downButtonServer);
                                         net.sendCommand(new ListRequest());
+                                    // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт" (кнопка сохранить)
                                         String a; // просто чтоб не светилось
-                                        // TODO: 04.11.2021 UPD реализовать кнопку, которая будет удалять файл с серва и отправлять обратно автору
                                     }
-                                    case "DepartmentEditor" -> {//удаление только у ниже стоящих (авторы)
+                                    case "DepartmentEditor" -> {
                                         turnOnScene(sceneMain);
                                         disableScene(sceneLog);
-                                        disableButt(upButtonServer);
-                                        disableButt(downButtonServer);
+//                                        disableButt(upButtonServer);
+//                                        disableButt(downButtonServer);
                                         net.sendCommand(new ListRequest());
                                         int v;// просто чтоб не светилось
-                                        // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт" (кнопка сохранить)
+                                        // TODO: 04.11.2021 UPD реализовать кнопку, которая будет удалять файл с серва и отправлять обратно автору
+
                                     }
                                     default -> log.debug("Invalid authCommand {}", cmd.getType());
                                 }
@@ -223,7 +229,7 @@ public class Controller implements Initializable {
 
     public void updateClient() throws IOException {
         refreshClientView();
-        dataUpdate();
+        dataClientUpdate();
         log.debug("Update Client List");
     }
     public void saveButtJSON(){//для админа(для добавления клиентов)
@@ -240,6 +246,7 @@ public class Controller implements Initializable {
         catch(IOException ex){
             log.debug(ex.getMessage());
         }
+        //System.out.println( Files.readString(Paths.get("Client", "root", "lohJson.json")));//чтение json
     }
 
     public  void  addUser(){
@@ -247,13 +254,13 @@ public class Controller implements Initializable {
 
 
 
-    public void  upServer() {//только для админа
+    public void  upServer() {//только для админа(может и для главы)
         upButtonServer.setOnMouseClicked(e->{
             net.sendCommand(new PathUpRequest());
         });
     }
     public void  inServer() {//только для админа
-        upButtonServer.setOnMouseClicked(e->{
+        downButtonServer.setOnMouseClicked(e->{
             String item = fileServerView.getSelectionModel().getSelectedItem();
             net.sendCommand(new PathInRequest(item));
         });
@@ -263,7 +270,7 @@ public class Controller implements Initializable {
             fileClientView.getItems().clear();
             currentDir = currentDir.getParent();
             refreshClientView();
-            dataUpdate();
+            dataClientUpdate();
         }
     }
     public void  clientPathIn(){
@@ -272,7 +279,7 @@ public class Controller implements Initializable {
         currentDir = currentDir.resolve(item);
         try {
             refreshClientView();
-            dataUpdate();
+            dataClientUpdate();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -287,7 +294,7 @@ public class Controller implements Initializable {
                     log.debug(file+ " deleted..");
                     try {
                         refreshClientView();
-                        dataUpdate();
+                        dataClientUpdate();
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -324,7 +331,7 @@ public class Controller implements Initializable {
 
                 try {
                     refreshClientView();
-                    dataUpdate();
+                    dataClientUpdate();
                 } catch (IOException ex) {
                    ex.printStackTrace();
                 }
@@ -370,7 +377,7 @@ public class Controller implements Initializable {
         return  results;
     }
 
-    private void dataUpdate(){
+    private void dataClientUpdate(){
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -380,7 +387,7 @@ public class Controller implements Initializable {
                     for (File file : files) {
                     SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
                     String format = sdf1.format(file.lastModified());
-                        System.out.println(format);
+//                    String format = "Обновлен "+sdf1.format(file.lastModified());
                     results.add(format);
                     }
                 dataClient.getItems().addAll(results);
@@ -398,7 +405,7 @@ public class Controller implements Initializable {
     }
 
     public void updateDateClient(ActionEvent actionEvent) {//для кнопок(если будут нужны)
-        dataUpdate();
+        dataClientUpdate();
         log.debug("Update Date Client List");
     }
     public  void updateDateServer(ActionEvent actionEvent){

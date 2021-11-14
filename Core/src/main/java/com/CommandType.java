@@ -9,10 +9,10 @@ public enum CommandType {
     FILE_DELETED_REQUEST,//Класс-команда для запроса удаления с сервера
     AUTH_REQUEST,//Класс-команда для запроса на вход
     AUTH_RESPONSE,//Класс-команда для передачи данных аккаунта пользователя
-    PATH_UP_REQUEST,
-    PATH_IN_REQUEST,
-    AUTH_OUT_RESPONSE,
-    AUTH_OUT_REQUEST,
-    UPDATE_DATE_FILE_REQUEST,
-    UPDATE_DATE_FILE_RESPONSE
+    PATH_UP_REQUEST,//Класс-команда для запроса на переход на уровень выше
+    PATH_IN_REQUEST,//Класс-команда для запроса на уровень ниже
+    AUTH_OUT_RESPONSE,//Класс-команда для отправки статуса аутентификации
+    AUTH_OUT_REQUEST,//Класс-команда для запроса аутентификации
+    UPDATE_DATE_FILE_REQUEST,//Класс-команда для запроса даты изменения файлов
+    UPDATE_DATE_FILE_RESPONSE//Класс-команда для отправки даты изменения файлов
 }

@@ -1,38 +1,73 @@
 {
-    "user1":{
-      "Password": "123",
+    "Admin":{
+      "Password": "Admin",
       "Post": "Admin",
+      "Main": "",
       "data": {
         "surname": "Иванов",
         "name": "Антон",
         "gender": "MALE"
       }
     },
-    "user2": {
-      "Password": "123",
-      "Post": "Author",
-      "data": {
-        "surname": "Иванченко",
-        "name": "Виктор",
-        "gender": "MALE"
-      }
-    },
-    "user3": {
-      "Password": "123",
+    "ChiefEditor1": {
+      "Password": "ChiefEditor1",
       "Post": "ChiefEditor",
+      "Main": "",
       "data": {
         "surname": "Попов",
         "name": "Виктор",
         "gender": "MALE"
       }
     },
-    "user4": {
-      "Password": "123",
+    "DepartmentEditor1": {
+      "Password": "DepartmentEditor1",
       "Post": "DepartmentEditor",
+      "Main": "ChiefEditor1",
       "data": {
         "surname": "Степанов",
         "name": "Алексей",
         "gender": "MALE"
       }
+    },
+    "Author1": {
+      "Password": "Author1",
+      "Post": "Author",
+      "Main": "DepartmentEditor1",
+      "data": {
+        "surname": "Иванченко",
+        "name": "Виктор",
+        "gender": "MALE"
+      }
+    },
+    "Author2": {
+      "Password": "Author2",
+      "Post": "Author",
+      "Main": "DepartmentEditor1",
+      "data": {
+        "surname": "Иванченко",
+        "name": "Виктор",
+        "gender": "MALE"
+      }
+    },
+    "DepartmentEditor2": {
+      "Password": "DepartmentEditor2",
+      "Post": "DepartmentEditor",
+      "Main": "ChiefEditor1",
+      "data": {
+        "surname": "Степанов",
+        "name": "Алексей",
+        "gender": "MALE"
+      }
+    },
+    "Author3": {
+      "Password": "Author3",
+      "Post": "Author",
+      "Main": "DepartmentEditor1",
+      "data": {
+        "surname": "Иванченко",
+        "name": "Виктор",
+        "gender": "MALE"
+      }
     }
+
 }
