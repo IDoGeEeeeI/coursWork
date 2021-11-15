@@ -1,9 +1,7 @@
 package com;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,16 +16,16 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
-
-    private final Path serverPath = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\root");
-    private Path serverPathForClients = Paths.get("Server","root\\");
-    private Path currentPath = Paths.get("Server","root");
-    private final Path logPath = Paths.get("Server", "log");
+    private final Path serverPathForAdmin = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ");
+    private final Path serverPathForEmp = Paths.get("Server","rootServ/root");
+    private Path currentPath = Paths.get("Server","rootServ/root");
+    private final Path logPath = Paths.get("Server", "rootServ/log");
     private Path clientPath ;
-    private final String jsonFile = "lohJson.json";
+    private final  Path logFilePath = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ\\log\\lohJson.json");
 
-    private SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
-    private Date date = new Date();
+    private final String jsonFile = "lohJson.json";
+    private final SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+    private  Date date = new Date();
 
 
 
@@ -53,7 +51,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 FileRequest fileRequest = (FileRequest) cmd;
                 String fileName = fileRequest.getName();
                 Path file = Paths.get(String.valueOf(currentPath), fileName);
-                ctx.writeAndFlush(new FileMessage(file));
+                ctx.writeAndFlush(new FileMessage(file));// TODO: 16.11.2021 тут ошибка при скачивании json
                 log.debug("Send file {} to the client", fileName);
             }
             case LIST_REQUEST -> {
@@ -93,39 +91,34 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                         authResponse.setPost(post);
                         switch (post){
                             case "Admin"->{
-                                clientPath = serverPath;
+                                clientPath = serverPathForAdmin;
                                 if (!Files.exists(clientPath)) {
                                     Files.createDirectory(clientPath);
                                 }
                                 currentPath = clientPath;
                             }
                             case "ChiefEditor"->{
-                                clientPath= serverPathForClients.resolve(login);
+                                clientPath= serverPathForEmp.resolve(login);
                                 if (!Files.exists(clientPath)) {
                                     Files.createDirectory(clientPath);
                                 }
                                 currentPath = clientPath;
                             }
                             case "DepartmentEditor"->{
-                                clientPath = serverPathForClients.resolve(main1+"\\"+login);
+                                clientPath = serverPathForEmp.resolve(main1+"\\"+login);
                                 if (!Files.exists(clientPath)) {
                                     Files.createDirectory(clientPath);
                                 }
                                 currentPath = clientPath;
                             }
                             case "Author" ->{
-                                clientPath = serverPathForClients.resolve(main2+"\\"+main1+"\\"+login);
+                                clientPath = serverPathForEmp.resolve(main2+"\\"+main1+"\\"+login);
                                 if (!Files.exists(clientPath)) {
                                     Files.createDirectory(clientPath);
                                 }
                                 currentPath = clientPath;
                             }
                         }
-//                        clientPath = serverPath.resolve(login);
-//                        if (!Files.exists(clientPath)) {
-//                            Files.createDirectory(clientPath);
-//                        }
-//                        currentPath = clientPath;
                     } else {
                         authResponse.setAuthStatus(false);
                     }
@@ -147,12 +140,12 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 }
             }
             case PATH_UP_REQUEST -> {
-                if (currentPath.getParent() != null) {//убрал права, так как кнопка доступна только для админа
-//                    if (currentPath.equals(clientPath)) {//блок по правам
-//                        log.debug("Above the client's folder , it is not necessary to rise");
-//                    } else {
+                if (currentPath.getParent() != null) {
+                    if (currentPath.equals(clientPath)) {//блок по правам
+                        log.debug("Above the client's folder , it is not necessary to rise");
+                    } else {
                         currentPath = currentPath.getParent();
-//                    }
+                    }
                 }
                 log.debug("Send list of files and current directory to the client");
                 ctx.writeAndFlush(new ListResponse(currentPath));
@@ -172,11 +165,43 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                     results.add(format);
                 }
                 ctx.writeAndFlush(new UpdateDateFileResponse(results));
-//                if(results.equals(sdf.format(date))){//todo!!!1
-////                    results.add("New "+format);
-////                }else {
-////                    results.add(format);
-////                }
+            }
+            case UPDATE_JSON_FILE_REQUEST -> {
+                UpdateJsonFileRequest updateJsonFileRequest = (UpdateJsonFileRequest) cmd;
+                String postAndId = updateJsonFileRequest.getPost()+updateJsonFileRequest.getId();
+                JSONObject json = new JSONObject(Files.readString(logFilePath));
+                Files.write(
+                        logPath.resolve(updateJsonFileRequest.getName()),
+                        updateJsonFileRequest.getBytes()
+                );
+                JSONObject jsonAppend = new JSONObject(
+                        //todo проблемы со скачиванием json(а так все работает)
+                        // наверное из-за каталога
+                        // +можно добавить JSON Форматирование(тип https://coderoad.ru/39319854/%D0%A4%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85-JSON-%D0%B2-Java)
+                        // и также нужно сделать файлы, которые скачиваются на сервер temp
+                    Files.readString(
+                            Paths.get(String.valueOf(logPath.resolve(updateJsonFileRequest.getName())))
+                    )
+                );
+                        JSONObject dataInf = new JSONObject();
+                        dataInf.put("surname",jsonAppend.getJSONObject(postAndId).getJSONObject("data").getString("surname"));
+                        dataInf.put("name",jsonAppend.getJSONObject(postAndId).getJSONObject("data").getString("name"));
+                        dataInf.put("gender",jsonAppend.getJSONObject(postAndId).getJSONObject("data").getString("gender"));
+                    JSONObject employeeDetails = new JSONObject();
+                    employeeDetails.put("Password", jsonAppend.getJSONObject(postAndId).getString("Password"));
+                    employeeDetails.put("Post", jsonAppend.getJSONObject(postAndId).getString("Post"));
+                    employeeDetails.put("Main", jsonAppend.getJSONObject(postAndId).getString("Main"));
+                    employeeDetails.put("data", dataInf);
+                json.put(postAndId,employeeDetails);
+                Files.delete(logFilePath);
+                Path path = logFilePath;
+                Files.writeString(
+                        path,
+                        json.toString()
+                );
+                ctx.writeAndFlush(new ListResponse(logPath));
+                ctx.writeAndFlush(new PathResponse(logPath.toString()));
+                log.debug("Send log list of files to the client");
             }
             default -> log.debug("Invalid command {}", cmd.getType());
         }

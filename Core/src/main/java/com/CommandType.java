@@ -14,5 +14,6 @@ public enum CommandType {
     AUTH_OUT_RESPONSE,//Класс-команда для отправки статуса аутентификации
     AUTH_OUT_REQUEST,//Класс-команда для запроса аутентификации
     UPDATE_DATE_FILE_REQUEST,//Класс-команда для запроса даты изменения файлов
-    UPDATE_DATE_FILE_RESPONSE//Класс-команда для отправки даты изменения файлов
+    UPDATE_DATE_FILE_RESPONSE,//Класс-команда для отправки даты изменения файлов
+    UPDATE_JSON_FILE_REQUEST
 }

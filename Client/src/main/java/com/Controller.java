@@ -13,9 +13,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
+import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +32,7 @@ public class Controller implements Initializable {
 
     private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");//тут можно потом просто поставить папку на рабочем столе
     // (сделать метод, который при запуске программы проверяет есть ли папка и создает если нужно)
+
     public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
@@ -96,8 +96,20 @@ public class Controller implements Initializable {
     private Button saveText;
     @FXML
     private Button cleanText;
-
-
+    @FXML
+    private Button loadTo;
+    @FXML
+    private CheckMenuItem AdminSplit;
+    @FXML
+    private CheckMenuItem AuthorSplit;
+    @FXML
+    private CheckMenuItem ChiefEditorSplit;
+    @FXML
+    private CheckMenuItem DepartmentEditorSplit;
+    @FXML
+    private SplitMenuButton addUserSplit;
+    @FXML
+    private TextField idArea;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -106,7 +118,7 @@ public class Controller implements Initializable {
                 @Override
                 public void run() {
                     disableScene(sceneMain);
-                    turnOnScene(sceneLog);
+                    enableScene(sceneLog);
                 }
             });
             refreshClientView();
@@ -142,35 +154,44 @@ public class Controller implements Initializable {
                             if (authResponse.getAuthStatus()) {
                                 switch (authResponse.getPost()) {
                                     case "Admin" -> {//полный доступ
-                                        turnOnScene(sceneMain);
+                                        enableScene(sceneMain);
                                         disableScene(sceneLog);
+                                        enableButt(upButtonServer);
+                                        enableButt(downButtonServer);
+                                        enableButt(DeleteFileServer);
                                         net.sendCommand(new ListRequest());
                                     }
                                     case "Author" -> {
-                                        turnOnScene(sceneMain);
+                                        enableScene(sceneMain);
                                         disableButt(DeleteFileServer);
                                         disableButt(upButtonServer);
                                         disableButt(downButtonServer);
                                         disableScene(sceneLog);
+                                        enableButt(DeleteFileServer);
+                                        disableSplitMenuButton(addUserSplit);
                                         net.sendCommand(new ListRequest());
                                     }
                                     case "ChiefEditor" -> {
-                                        turnOnScene(sceneMain);
+                                        enableScene(sceneMain);
                                         disableScene(sceneLog);
-//                                        disableButt(upButtonServer);
-//                                        disableButt(downButtonServer);
+                                        enableButt(upButtonServer);
+                                        enableButt(downButtonServer);
+                                        enableButt(DeleteFileServer);
+                                        enableButt(loadTo);
+                                        disableSplitMenuButton(addUserSplit);
                                         net.sendCommand(new ListRequest());
                                     // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт" (кнопка сохранить)
                                         String a; // просто чтоб не светилось
                                     }
                                     case "DepartmentEditor" -> {
-                                        turnOnScene(sceneMain);
+                                        enableScene(sceneMain);
                                         disableScene(sceneLog);
-//                                        disableButt(upButtonServer);
-//                                        disableButt(downButtonServer);
+                                        enableButt(upButtonServer);
+                                        enableButt(downButtonServer);
+                                        enableButt(DeleteFileServer);
+                                        disableSplitMenuButton(addUserSplit);
                                         net.sendCommand(new ListRequest());
                                         int v;// просто чтоб не светилось
-                                        // TODO: 04.11.2021 UPD реализовать кнопку, которая будет удалять файл с серва и отправлять обратно автору
 
                                     }
                                     default -> log.debug("Invalid authCommand {}", cmd.getType());
@@ -184,7 +205,7 @@ public class Controller implements Initializable {
                             AuthOutResponse authOutResponse = new AuthOutResponse();
                             log.debug("AuthResponse {}", authOutResponse.getAuthOutStatus());
                             disableScene(sceneMain);
-                            turnOnScene(sceneLog);
+                            enableScene(sceneLog);
                         }
                         case UPDATE_DATE_FILE_RESPONSE->{
                             UpdateDateFileResponse updateDateFileResponse = (UpdateDateFileResponse) cmd;
@@ -199,7 +220,7 @@ public class Controller implements Initializable {
         a.setDisable(true);
         a.setVisible(false);
     }
-    public void turnOnScene(AnchorPane a){
+    public void enableScene(AnchorPane a){
         a.setDisable(false);
         a.setVisible(true);
     }
@@ -207,10 +228,25 @@ public class Controller implements Initializable {
         a.setDisable(true);
         a.setVisible(false);
     }
-    public void turnOnButt(Button a){
+    public void enableButt(Button a){
         a.setDisable(false);
         a.setVisible(true);
     }
+    public void disableCheckMenuItem(CheckMenuItem a){
+        a.setDisable(true);
+    }
+    public void enableCheckMenuItem(CheckMenuItem a){
+        a.setDisable(false);
+    }
+    public void disableSplitMenuButton(SplitMenuButton a){
+        a.setDisable(true);
+        a.setVisible(false);
+    }
+    public void enableSplitMenuButton(SplitMenuButton a){
+        a.setDisable(false);
+        a.setVisible(true);
+    }
+
     public  void logOut(ActionEvent actionEvent){
         net.sendCommand(new AuthOutRequest());
     }
@@ -232,34 +268,94 @@ public class Controller implements Initializable {
         dataClientUpdate();
         log.debug("Update Client List");
     }
-    public void saveButtJSON(){//для админа(для добавления клиентов)
-// TODO: 06.11.2021 boolean createNewFile(): создает новый файл по пути, который передан в конструктор.
-//  В случае удачного создания возвращает true, иначе false
-       String write = TextAreaDown.getText();
-        File newFile = new File(String.valueOf(currentDir),write);
-        try
-        {
-            boolean created = newFile.createNewFile();
-            if(created)
-                log.debug("File has been created");
-        }
-        catch(IOException ex){
-            log.debug(ex.getMessage());
-        }
-        //System.out.println( Files.readString(Paths.get("Client", "root", "lohJson.json")));//чтение json
+    public  void addUser(ActionEvent actionEvent){
+        // TODO: 16.11.2021 добавить: проверку на id и если idArea = null, то ничего не делать
+        addUserSplit.setOnMouseClicked(e->{
+            if(e.getClickCount()==1 && AdminSplit.isSelected() && !idArea.getText().isEmpty()){
+                String str = AdminSplit.getText();
+                String id = idArea.getText();
+                disableCheckMenuItem(ChiefEditorSplit);
+                disableCheckMenuItem(DepartmentEditorSplit);
+                disableCheckMenuItem(AuthorSplit);
+                String text1 = TextAreaDown.getText();
+                try {
+                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
+                    net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
+                    newFile.deleteOnExit();
+                    enableCheckMenuItem(ChiefEditorSplit);
+                    enableCheckMenuItem(DepartmentEditorSplit);
+                    enableCheckMenuItem(AuthorSplit);
+                    idArea.clear();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }else if(e.getClickCount()==1 && ChiefEditorSplit.isSelected() && !idArea.getText().isEmpty()){
+                String str = ChiefEditorSplit.getText();
+                String id = idArea.getText();
+                disableCheckMenuItem(AdminSplit);
+                disableCheckMenuItem(DepartmentEditorSplit);
+                disableCheckMenuItem(AuthorSplit);
+                String text1 = TextAreaDown.getText();
+                try {
+                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
+                    net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
+                    newFile.deleteOnExit();
+                    enableCheckMenuItem(AdminSplit);
+                    enableCheckMenuItem(DepartmentEditorSplit);
+                    enableCheckMenuItem(AuthorSplit);
+                    idArea.clear();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }else if(e.getClickCount()==1 && DepartmentEditorSplit.isSelected() && !idArea.getText().isEmpty()){
+                String str = DepartmentEditorSplit.getText();
+                String id = idArea.getText();
+                disableCheckMenuItem(ChiefEditorSplit);
+                disableCheckMenuItem(AdminSplit);
+                disableCheckMenuItem(AuthorSplit);
+                String text1 = TextAreaDown.getText();
+                try {
+                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
+                    net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
+                    newFile.deleteOnExit();
+                    enableCheckMenuItem(AdminSplit);
+                    enableCheckMenuItem(ChiefEditorSplit);
+                    enableCheckMenuItem(AuthorSplit);
+                    idArea.clear();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }else if(e.getClickCount()==1 && AuthorSplit.isSelected() && !idArea.getText().isEmpty()){
+                String str = AuthorSplit.getText();
+                String id = idArea.getText();
+                disableCheckMenuItem(ChiefEditorSplit);
+                disableCheckMenuItem(DepartmentEditorSplit);
+                disableCheckMenuItem(AdminSplit);// TODO: 15.11.2021 +  нужно убрать литерал для temp(или можно temp по дефолту сохранять, а не в папке)
+                String text1 = TextAreaDown.getText();
+                try {
+                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
+                    net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
+                    newFile.deleteOnExit();
+                    enableCheckMenuItem(AdminSplit);
+                    enableCheckMenuItem(ChiefEditorSplit);
+                    enableCheckMenuItem(DepartmentEditorSplit);
+                    idArea.clear();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
     }
-
-    public  void  addUser(){
-    }
-
-
-
-    public void  upServer() {//только для админа(может и для главы)
+    public void  upServer() {
         upButtonServer.setOnMouseClicked(e->{
             net.sendCommand(new PathUpRequest());
         });
     }
-    public void  inServer() {//только для админа
+    public void  inServer() {
         downButtonServer.setOnMouseClicked(e->{
             String item = fileServerView.getSelectionModel().getSelectedItem();
             net.sendCommand(new PathInRequest(item));
