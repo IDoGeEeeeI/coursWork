@@ -65,7 +65,7 @@
                         <TextArea fx:id="TextAreaDown" layoutX="-4.0" layoutY="-7.0" prefHeight="349.0" prefWidth="994.0" />
                            <Button fx:id="saveText" layoutX="920.0" layoutY="276.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="52.0" text="save" />
                            <Button fx:id="cleanText" layoutX="920.0" layoutY="222.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="52.0" text="clean" />
-                           <SplitMenuButton fx:id="addUserSplit" onAction="#addUser" layoutX="783.0" layoutY="276.0" mnemonicParsing="false" prefHeight="50.0" text="addUsers">
+                           <SplitMenuButton fx:id="addUserSplit" layoutX="783.0" layoutY="276.0" mnemonicParsing="false" onAction="#addUser" prefHeight="50.0" text="addUsers">
                              <items>
                                  <CheckMenuItem fx:id="AdminSplit" mnemonicParsing="false" text="Admin" />
                                  <CheckMenuItem fx:id="ChiefEditorSplit" mnemonicParsing="false" text="ChiefEditor" />
@@ -76,6 +76,7 @@
                                  <TextField fx:id="idArea" prefHeight="25.0" prefWidth="37.0" />
                               </graphic>
                            </SplitMenuButton>
+                           <Button fx:id="dellUser" onAction="#dellUser" layoutX="783.0" layoutY="222.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="131.0" text="dellUser" />
                      </children></AnchorPane>
               </content>
             </ScrollPane>

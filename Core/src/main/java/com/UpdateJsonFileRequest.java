@@ -8,10 +8,10 @@ import java.nio.file.Path;
 public class UpdateJsonFileRequest extends Command{
 
 
-    private String name;
+    private final String name;
     private final byte[] bytes;
-    private String post;
-    private String idP;
+    private final String post;
+    private final String idP;
 
     public UpdateJsonFileRequest(Path path, String str, String id) throws IOException {
         name = path.getFileName().toString();

@@ -201,7 +201,24 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 );
                 ctx.writeAndFlush(new ListResponse(logPath));
                 ctx.writeAndFlush(new PathResponse(logPath.toString()));
+                Files.delete(logPath.resolve(updateJsonFileRequest.getName()));
                 log.debug("Send log list of files to the client");
+            }
+            case DELETE_EMPLOYEE -> {
+                DeleteEmployee deleteEmployee = (DeleteEmployee) cmd;
+                JSONObject json = new JSONObject(
+                        Files.readString(logFilePath)
+                );
+                json.remove(deleteEmployee.getName());
+                ctx.writeAndFlush(new ListResponse(logPath));
+                ctx.writeAndFlush(new PathResponse(logPath.toString()));
+                log.debug("Send log list of files to the client");
+                Files.delete(logFilePath);
+                Path path = logFilePath;
+                Files.writeString(
+                        path,
+                        json.toString()
+                );
             }
             default -> log.debug("Invalid command {}", cmd.getType());
         }

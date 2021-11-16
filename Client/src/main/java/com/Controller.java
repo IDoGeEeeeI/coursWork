@@ -91,9 +91,7 @@ public class Controller implements Initializable {
     @FXML
     private  Button downButtonServer;
     @FXML
-    private TextArea textAreaForClient;
-    @FXML
-    private Button saveText;
+    private Button saveText;//todo
     @FXML
     private Button cleanText;
     @FXML
@@ -110,6 +108,8 @@ public class Controller implements Initializable {
     private SplitMenuButton addUserSplit;
     @FXML
     private TextField idArea;
+    @FXML
+    private Button dellUser;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -169,6 +169,7 @@ public class Controller implements Initializable {
                                         disableScene(sceneLog);
                                         enableButt(DeleteFileServer);
                                         disableSplitMenuButton(addUserSplit);
+                                        disableButt(dellUser);
                                         net.sendCommand(new ListRequest());
                                     }
                                     case "ChiefEditor" -> {
@@ -179,6 +180,7 @@ public class Controller implements Initializable {
                                         enableButt(DeleteFileServer);
                                         enableButt(loadTo);
                                         disableSplitMenuButton(addUserSplit);
+                                        disableButt(dellUser);
                                         net.sendCommand(new ListRequest());
                                     // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт" (кнопка сохранить)
                                         String a; // просто чтоб не светилось
@@ -190,6 +192,7 @@ public class Controller implements Initializable {
                                         enableButt(downButtonServer);
                                         enableButt(DeleteFileServer);
                                         disableSplitMenuButton(addUserSplit);
+                                        disableButt(dellUser);
                                         net.sendCommand(new ListRequest());
                                         int v;// просто чтоб не светилось
 
@@ -246,6 +249,12 @@ public class Controller implements Initializable {
         a.setDisable(false);
         a.setVisible(true);
     }
+    public void disableCheckItems(CheckMenuItem a, CheckMenuItem b, CheckMenuItem c){
+        a.setDisable(true);
+        a.setVisible(false);
+        b.setDisable(true);
+        c.setDisable(true);
+    }
 
     public  void logOut(ActionEvent actionEvent){
         net.sendCommand(new AuthOutRequest());
@@ -268,82 +277,70 @@ public class Controller implements Initializable {
         dataClientUpdate();
         log.debug("Update Client List");
     }
+    public void  dellUser(ActionEvent actionEvent){
+        dellUser.setOnMouseClicked(e->{
+            if(e.getClickCount()==2 && !TextAreaDown.getText().isEmpty()){
+                String str = TextAreaDown.getText();
+                net.sendCommand(new DeleteEmployee(str));
+                TextAreaDown.clear();
+            }
+        });
+    }
     public  void addUser(ActionEvent actionEvent){
-        // TODO: 16.11.2021 добавить: проверку на id и если idArea = null, то ничего не делать
         addUserSplit.setOnMouseClicked(e->{
             if(e.getClickCount()==1 && AdminSplit.isSelected() && !idArea.getText().isEmpty()){
                 String str = AdminSplit.getText();
                 String id = idArea.getText();
-                disableCheckMenuItem(ChiefEditorSplit);
-                disableCheckMenuItem(DepartmentEditorSplit);
-                disableCheckMenuItem(AuthorSplit);
                 String text1 = TextAreaDown.getText();
                 try {
                     File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
-                    enableCheckMenuItem(ChiefEditorSplit);
-                    enableCheckMenuItem(DepartmentEditorSplit);
-                    enableCheckMenuItem(AuthorSplit);
                     idArea.clear();
+                    TextAreaDown.clear();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
             }else if(e.getClickCount()==1 && ChiefEditorSplit.isSelected() && !idArea.getText().isEmpty()){
                 String str = ChiefEditorSplit.getText();
                 String id = idArea.getText();
-                disableCheckMenuItem(AdminSplit);
-                disableCheckMenuItem(DepartmentEditorSplit);
-                disableCheckMenuItem(AuthorSplit);
                 String text1 = TextAreaDown.getText();
                 try {
                     File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
-                    enableCheckMenuItem(AdminSplit);
-                    enableCheckMenuItem(DepartmentEditorSplit);
-                    enableCheckMenuItem(AuthorSplit);
                     idArea.clear();
+                    TextAreaDown.clear();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
             }else if(e.getClickCount()==1 && DepartmentEditorSplit.isSelected() && !idArea.getText().isEmpty()){
                 String str = DepartmentEditorSplit.getText();
                 String id = idArea.getText();
-                disableCheckMenuItem(ChiefEditorSplit);
-                disableCheckMenuItem(AdminSplit);
-                disableCheckMenuItem(AuthorSplit);
                 String text1 = TextAreaDown.getText();
                 try {
                     File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
-                    enableCheckMenuItem(AdminSplit);
-                    enableCheckMenuItem(ChiefEditorSplit);
-                    enableCheckMenuItem(AuthorSplit);
                     idArea.clear();
+                    TextAreaDown.clear();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
             }else if(e.getClickCount()==1 && AuthorSplit.isSelected() && !idArea.getText().isEmpty()){
                 String str = AuthorSplit.getText();
                 String id = idArea.getText();
-                disableCheckMenuItem(ChiefEditorSplit);
-                disableCheckMenuItem(DepartmentEditorSplit);
-                disableCheckMenuItem(AdminSplit);// TODO: 15.11.2021 +  нужно убрать литерал для temp(или можно temp по дефолту сохранять, а не в папке)
-                String text1 = TextAreaDown.getText();
+                String text1 = TextAreaDown.getText();// TODO: 15.11.2021 +  нужно убрать литерал для temp(или можно temp по дефолту сохранять, а не в папке)
                 try {
                     File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
-                    enableCheckMenuItem(AdminSplit);
-                    enableCheckMenuItem(ChiefEditorSplit);
-                    enableCheckMenuItem(DepartmentEditorSplit);
                     idArea.clear();
+                    TextAreaDown.clear();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
