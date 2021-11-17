@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.json.JSONObject;
 
 
@@ -25,7 +27,6 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
 
     private final String jsonFile = "lohJson.json";
     private final SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
-    private  Date date = new Date();
 
 
 
@@ -51,7 +52,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 FileRequest fileRequest = (FileRequest) cmd;
                 String fileName = fileRequest.getName();
                 Path file = Paths.get(String.valueOf(currentPath), fileName);
-                ctx.writeAndFlush(new FileMessage(file));// TODO: 16.11.2021 тут ошибка при скачивании json
+                ctx.writeAndFlush(new FileMessage(file));
                 log.debug("Send file {} to the client", fileName);
             }
             case LIST_REQUEST -> {
@@ -175,10 +176,6 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                         updateJsonFileRequest.getBytes()
                 );
                 JSONObject jsonAppend = new JSONObject(
-                        //todo проблемы со скачиванием json(а так все работает)
-                        // наверное из-за каталога
-                        // +можно добавить JSON Форматирование(тип https://coderoad.ru/39319854/%D0%A4%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85-JSON-%D0%B2-Java)
-                        // и также нужно сделать файлы, которые скачиваются на сервер temp
                     Files.readString(
                             Paths.get(String.valueOf(logPath.resolve(updateJsonFileRequest.getName())))
                     )
@@ -194,10 +191,10 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                     employeeDetails.put("data", dataInf);
                 json.put(postAndId,employeeDetails);
                 Files.delete(logFilePath);
-                Path path = logFilePath;
                 Files.writeString(
-                        path,
+                        logFilePath,
                         json.toString()
+//                        gson.toJson(json)//пока что не разобрался с gson(есть кое-какие проблемы)todo
                 );
                 ctx.writeAndFlush(new ListResponse(logPath));
                 ctx.writeAndFlush(new PathResponse(logPath.toString()));
@@ -214,9 +211,8 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 ctx.writeAndFlush(new PathResponse(logPath.toString()));
                 log.debug("Send log list of files to the client");
                 Files.delete(logFilePath);
-                Path path = logFilePath;
                 Files.writeString(
-                        path,
+                        logFilePath,
                         json.toString()
                 );
             }

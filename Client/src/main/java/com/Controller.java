@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,27 +21,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
-// TODO: 04.11.2021 реализовать само приложение, где будут публикации
-
-//  ****************** добалю, когда все сделаю(для последующих версий программ )
+// TODO: 18.11.2021  //
 //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
 //  ****************** после входа, или до можно выводить окно, где будешь устанавливать root папку
-//  ****************** можно еще добавить отмену последнего действия(например, отмена удаления)
+
 
 @Slf4j
 public class Controller implements Initializable {
 
-    private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");//тут можно потом просто поставить папку на рабочем столе
-    // (сделать метод, который при запуске программы проверяет есть ли папка и создает если нужно)
+    private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");
 
     public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
     private Net net;
-
-    private SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
-    private Date date = new Date();
-//System.out.println(sdf.format(date));
 
     @FXML
     public ListView<String> fileClientView;
@@ -110,6 +104,8 @@ public class Controller implements Initializable {
     private TextField idArea;
     @FXML
     private Button dellUser;
+    @FXML
+    private Menu helpMenu;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -159,6 +155,7 @@ public class Controller implements Initializable {
                                         enableButt(upButtonServer);
                                         enableButt(downButtonServer);
                                         enableButt(DeleteFileServer);
+                                        enableMenu();
                                         net.sendCommand(new ListRequest());
                                     }
                                     case "Author" -> {
@@ -255,6 +252,15 @@ public class Controller implements Initializable {
         b.setDisable(true);
         c.setDisable(true);
     }
+    public void enableMenu(){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                helpMenu.setDisable(false);
+                helpMenu.setVisible(true);
+            }
+        });
+    }
 
     public  void logOut(ActionEvent actionEvent){
         net.sendCommand(new AuthOutRequest());
@@ -293,7 +299,7 @@ public class Controller implements Initializable {
                 String id = idArea.getText();
                 String text1 = TextAreaDown.getText();
                 try {
-                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    File newFile = File.createTempFile("text", ".json", null);
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
@@ -307,7 +313,7 @@ public class Controller implements Initializable {
                 String id = idArea.getText();
                 String text1 = TextAreaDown.getText();
                 try {
-                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    File newFile = File.createTempFile("text", ".json", null);
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
@@ -321,7 +327,7 @@ public class Controller implements Initializable {
                 String id = idArea.getText();
                 String text1 = TextAreaDown.getText();
                 try {
-                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    File newFile = File.createTempFile("text", ".json", null);
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
@@ -333,9 +339,9 @@ public class Controller implements Initializable {
             }else if(e.getClickCount()==1 && AuthorSplit.isSelected() && !idArea.getText().isEmpty()){
                 String str = AuthorSplit.getText();
                 String id = idArea.getText();
-                String text1 = TextAreaDown.getText();// TODO: 15.11.2021 +  нужно убрать литерал для temp(или можно temp по дефолту сохранять, а не в папке)
+                String text1 = TextAreaDown.getText();
                 try {
-                    File newFile = File.createTempFile("text", ".json", new File("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client\\temp"));
+                    File newFile = File.createTempFile("text", ".json", null);
                     Files.writeString(Paths.get(String.valueOf(newFile)), text1, StandardOpenOption.APPEND);
                     net.sendCommand(new UpdateJsonFileRequest(Paths.get(String.valueOf(newFile)),str,id));
                     newFile.deleteOnExit();
@@ -480,7 +486,6 @@ public class Controller implements Initializable {
                     for (File file : files) {
                     SimpleDateFormat sdf1 = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
                     String format = sdf1.format(file.lastModified());
-//                    String format = "Обновлен "+sdf1.format(file.lastModified());
                     results.add(format);
                     }
                 dataClient.getItems().addAll(results);
@@ -521,10 +526,9 @@ public class Controller implements Initializable {
                     if(str.contains(item)) {
                         //выводить содержимое файла
                         try {
-                            // TODO: 29.10.2021 решить проблему с русским языком в файлах
-//standardCharsets.UTF-8
+                            // TODO: 29.10.2021 решить проблему с русским языком в файлах UPD наверное пофиксил, но проверить (может это проблема была только на маке?!)
                             log.debug(String.valueOf(currentDir.resolve(item)));
-                            TextAreaDown.setText(Files.readString(currentDir.resolve(item)));
+                            TextAreaDown.setText(Files.readString(currentDir.resolve(item), StandardCharsets.UTF_8));//по сути я тут и ничего и не менял, там и так в дефолте ютф8
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }

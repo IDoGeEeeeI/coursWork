@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitMenuButton?>
@@ -76,7 +77,7 @@
                                  <TextField fx:id="idArea" prefHeight="25.0" prefWidth="37.0" />
                               </graphic>
                            </SplitMenuButton>
-                           <Button fx:id="dellUser" onAction="#dellUser" layoutX="783.0" layoutY="222.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="131.0" text="dellUser" />
+                           <Button fx:id="dellUser" layoutX="783.0" layoutY="222.0" mnemonicParsing="false" onAction="#dellUser" prefHeight="50.0" prefWidth="131.0" text="dellUser" />
                      </children></AnchorPane>
               </content>
             </ScrollPane>
@@ -135,6 +136,72 @@
                      <MenuItem fx:id="updateClientMenu" mnemonicParsing="false" onAction="#updateClient" text="Client" />
             </items>
           </Menu>
+               <Menu mnemonicParsing="false" text="Help">
+                 <items>
+                   <MenuItem mnemonicParsing="false">
+                        <graphic>
+                           <MenuButton mnemonicParsing="false" prefWidth="80.0" style="-fx-background-color: #fff;" text="addUser">
+                             <items>
+                               <MenuItem mnemonicParsing="false">
+                                    <graphic>
+                                       <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" text="{&quot;Author4&quot;: {      &quot;Password&quot;:A &quot;Author4&quot;,      &quot;Post&quot;: &quot;Author&quot;,      &quot;Main&quot;: &quot;DepartmentEditor2&quot;,      &quot;data&quot;: {        &quot;surname&quot;: &quot;Иванченко&quot;,        &quot;name&quot;: &quot;Василий&quot;,        &quot;gender&quot;: &quot;MALE&quot;      }    }}                                                    пример текста для добавления, затем в кнопке пишем id(такое же как и в тексте: автор4 - значит 4) и в списке выбираем его должность(такую же как и в тексте)" wrapText="true">
+                                          <font>
+                                             <Font size="11.0" />
+                                          </font></TextArea>
+                                    </graphic>
+                                 </MenuItem>
+                             </items>
+                           </MenuButton>
+                        </graphic>
+                     </MenuItem>
+                     <MenuItem mnemonicParsing="false">
+                        <graphic>
+                           <MenuButton mnemonicParsing="false" prefWidth="80.0" style="-fx-background-color: #fff;" text="delUser">
+                             <items>
+                               <MenuItem mnemonicParsing="false">
+                                    <graphic>
+                                       <TextArea prefHeight="200.0" prefWidth="200.0" text="Author4    - написать и нажать 2 раза на кнопку удалить" wrapText="true" />
+                                    </graphic></MenuItem>
+                             </items>
+                           </MenuButton>
+                        </graphic>
+                     </MenuItem>
+                 </items>
+               </Menu>
+               <Menu fx:id="helpMenu" disable="true" mnemonicParsing="false" text="Help" visible="false">
+                  <items>
+                     <MenuItem mnemonicParsing="false">
+                        <graphic>
+                           <MenuButton mnemonicParsing="false" prefWidth="80.0" style="-fx-background-color: #fff;" text="addUser">
+                              <items>
+                                 <MenuItem mnemonicParsing="false">
+                                    <graphic>
+                                       <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" text="{&quot;Author4&quot;: {      &quot;Password&quot;: &quot;Author4&quot;,      &quot;Post&quot;: &quot;Author&quot;,      &quot;Main&quot;: &quot;DepartmentEditor2&quot;,      &quot;data&quot;: {        &quot;surname&quot;: &quot;Иванченко&quot;,        &quot;name&quot;: &quot;Василий&quot;,        &quot;gender&quot;: &quot;MALE&quot;      }    }}                                                    пример текста для добавления, затем в кнопке пишем id(такое же как и в тексте: автор4 - значит 4) и в списке выбираем его должность(такую же как и в тексте)" wrapText="true">
+                                          <font>
+                                             <Font size="11.0" />
+                                          </font>
+                                       </TextArea>
+                                    </graphic>
+                                 </MenuItem>
+                              </items>
+                           </MenuButton>
+                        </graphic>
+                     </MenuItem>
+                     <MenuItem mnemonicParsing="false">
+                        <graphic>
+                           <MenuButton mnemonicParsing="false" prefWidth="80.0" style="-fx-background-color: #fff;" text="delUser">
+                              <items>
+                                 <MenuItem mnemonicParsing="false">
+                                    <graphic>
+                                       <TextArea prefHeight="200.0" prefWidth="200.0" text="Author4    - написать и нажать 2 раза на кнопку удалить" wrapText="true" />
+                                    </graphic>
+                                 </MenuItem>
+                              </items>
+                           </MenuButton>
+                        </graphic>
+                     </MenuItem>
+                  </items>
+               </Menu>
         </menus>
       </MenuBar>
       </AnchorPane>
