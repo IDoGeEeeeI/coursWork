@@ -1,0 +1,13 @@
+{
+  "Author4": {
+
+    "Password": "Author4",
+    "Post": "Author",
+    "Main": "DepartmentEditor2",
+    "data": {
+      "surname": "Иванченко",
+      "name": "Василий",
+      "gender": "MALE"
+      }
+  }
+}

@@ -17,11 +17,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
-// TODO: 18.11.2021  //
+
 //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
 //  ****************** после входа, или до можно выводить окно, где будешь устанавливать root папку
 
@@ -117,9 +116,11 @@ public class Controller implements Initializable {
                     enableScene(sceneLog);
                 }
             });
+            if(Files.exists(currentDir)){
+                System.out.println("trueAd");
+            }
             refreshClientView();
             dataClientUpdate();
-
             addNavigationListener();
         } catch (IOException e) {
             e.printStackTrace();
@@ -178,9 +179,9 @@ public class Controller implements Initializable {
                                         enableButt(loadTo);
                                         disableSplitMenuButton(addUserSplit);
                                         disableButt(dellUser);
+                                        enableButt(loadTo);//кнопка для заливания на "сайт"(ничего пока что не делает,
+                                        // но будет наверное отправлять в папку для "сайта")
                                         net.sendCommand(new ListRequest());
-                                    // TODO: 04.11.2021 todo UPD кнопку для заливания на "сайт" (кнопка сохранить)
-                                        String a; // просто чтоб не светилось
                                     }
                                     case "DepartmentEditor" -> {
                                         enableScene(sceneMain);
@@ -191,7 +192,6 @@ public class Controller implements Initializable {
                                         disableSplitMenuButton(addUserSplit);
                                         disableButt(dellUser);
                                         net.sendCommand(new ListRequest());
-                                        int v;// просто чтоб не светилось
 
                                     }
                                     default -> log.debug("Invalid authCommand {}", cmd.getType());
@@ -539,7 +539,7 @@ public class Controller implements Initializable {
         });
         cleanText.setOnMouseClicked(e->{
             if(e.getClickCount()==1){
-                TextAreaDown.setText("");
+                TextAreaDown.clear();
             }
         });
     }
