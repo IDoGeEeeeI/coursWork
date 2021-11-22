@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+//import com.google.gson.Gson;
+//import com.google.gson.GsonBuilder;
 import org.json.JSONObject;
 
 
@@ -18,15 +18,22 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
-    private final Path serverPathForAdmin = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ");
+    private final SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+
+//    private final Path serverPathForAdmin = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ");
+//    private final Path serverPathForEmp = Paths.get("Server","rootServ/root");
+//    private Path currentPath = Paths.get("Server","rootServ/root");
+//    private final Path logPath = Paths.get("Server", "rootServ/log");
+//    private Path clientPath ;
+//    private final  Path logFilePath = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ\\log\\lohJson.json");
+
+    private final Path serverPathForAdmin= Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ");
     private final Path serverPathForEmp = Paths.get("Server","rootServ/root");
     private Path currentPath = Paths.get("Server","rootServ/root");
     private final Path logPath = Paths.get("Server", "rootServ/log");
     private Path clientPath ;
-    private final  Path logFilePath = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ\\log\\lohJson.json");
+    private final  Path logFilePath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ/log/lohJson.json");
 
-    private final String jsonFile = "lohJson.json";
-    private final SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
 
 
 
@@ -73,6 +80,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 AuthRequest authRequest = (AuthRequest) cmd;
                 String login = authRequest.getLogin();
                 String password = authRequest.getPassword();
+                String jsonFile = "lohJson.json";
                 JSONObject jsonObject = new JSONObject(Files.readString(logPath.resolve(jsonFile)));
                 String post;
                 String main1,main2="";
@@ -160,6 +168,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
             case UPDATE_DATE_FILE_REQUEST -> {
                 List<String> results = new ArrayList<>();
                 File[] files = new File(String.valueOf(currentPath)).listFiles();
+                assert files != null;
                 for (File file : files) {
                     SimpleDateFormat sdf1 = new SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
                     String format = sdf1.format(file.lastModified());
@@ -194,7 +203,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 Files.writeString(
                         logFilePath,
                         json.toString()
-//                        gson.toJson(json)//пока что не разобрался с gson(есть кое-какие проблемы)todo
+//                        gson.toJson(json)//пока что не разобрался с gson(есть кое-какие проблемы)
                 );
                 ctx.writeAndFlush(new ListResponse(logPath));
                 ctx.writeAndFlush(new PathResponse(logPath.toString()));

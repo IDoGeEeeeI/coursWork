@@ -12,10 +12,6 @@ import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Locale;
-import java.util.Scanner;
-
-// TODO: 19.11.2021 правильное закрытие по команде сделать
 @Slf4j
 public class NettyServer {
     public NettyServer() {
@@ -40,13 +36,6 @@ public class NettyServer {
                     .bind(8189)
                     .sync();
             log.debug("Server started...");
-            //
-            Scanner scr = new Scanner(System.in);
-            String str = scr.next();
-            if ("stop".equals(str.toLowerCase(Locale.ROOT))) {// TODO: 19.11.2021 не уверен насчет этой реализации
-                channelFuture.channel().close();
-            }
-            //
             channelFuture.channel().closeFuture().sync(); // block
         }catch (Exception e) {
             log.error("Server exception: Stacktrace: ", e);

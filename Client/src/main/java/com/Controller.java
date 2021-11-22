@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -28,7 +29,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Controller implements Initializable {
 
-    private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");
+//    private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");
+private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Client", "root");
+
 
     public AnchorPane Scene;
     public AnchorPane sceneLog;
@@ -84,7 +87,7 @@ public class Controller implements Initializable {
     @FXML
     private  Button downButtonServer;
     @FXML
-    private Button saveText;//todo
+    private Button saveText;
     @FXML
     private Button cleanText;
     @FXML
@@ -105,9 +108,17 @@ public class Controller implements Initializable {
     private Button dellUser;
     @FXML
     private Menu helpMenu;
+    @FXML
+    private TextField pathSet;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        log.debug(System.getProperty("os.name"));
+        if (System.getProperty("os.name").equals("Mac OS X")){//чисто для меня (пока что, просто удобнее работать на разных машинах с гитом), а так тут нужно будет поставить хотяб дефол - рабочий стол
+            currentDir=Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Client", "root");
+        }else {//p.s. тут только для мака и для винды
+            currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");
+        }
         try {
             Platform.runLater(new Runnable() {
                 @Override
@@ -116,9 +127,6 @@ public class Controller implements Initializable {
                     enableScene(sceneLog);
                 }
             });
-            if(Files.exists(currentDir)){
-                System.out.println("trueAd");
-            }
             refreshClientView();
             dataClientUpdate();
             addNavigationListener();
@@ -179,8 +187,7 @@ public class Controller implements Initializable {
                                         enableButt(loadTo);
                                         disableSplitMenuButton(addUserSplit);
                                         disableButt(dellUser);
-                                        enableButt(loadTo);//кнопка для заливания на "сайт"(ничего пока что не делает,
-                                        // но будет наверное отправлять в папку для "сайта")
+                                        enableButt(loadTo);
                                         net.sendCommand(new ListRequest());
                                     }
                                     case "DepartmentEditor" -> {
@@ -192,7 +199,6 @@ public class Controller implements Initializable {
                                         disableSplitMenuButton(addUserSplit);
                                         disableButt(dellUser);
                                         net.sendCommand(new ListRequest());
-
                                     }
                                     default -> log.debug("Invalid authCommand {}", cmd.getType());
                                 }
@@ -260,6 +266,21 @@ public class Controller implements Initializable {
                 helpMenu.setVisible(true);
             }
         });
+    }
+    public  void  setPathWhileLogin(){
+        String str =  pathSet.getText();
+        buttIN.setOnMouseClicked(e->{
+            if(e.getClickCount()==1){
+                if(pathSet != null){ // TODO: 22.11.2021  короче я еще не знаю как это по дизайну сделать, пока что в раздумьях 
+                    // todo думаю просто поменять дефолт папки на рабочий стол и все
+                    //  (можно сделать как clientview, тип будет список папок, и там выбирать куда хочешь поставить)
+                    currentDir = Paths.get(str);
+                    log.debug(currentDir.toString());
+                    pathSet.clear();
+                }
+            }
+        });
+
     }
 
     public  void logOut(ActionEvent actionEvent){
@@ -437,6 +458,27 @@ public class Controller implements Initializable {
             }
         });
     }
+    @FXML
+    private void saveTextInfile(){
+        saveText.setOnMouseClicked(e->{
+            if(e.getClickCount()==1){
+                String str =  TextAreaDown.getText();//текст файла
+                String fileSelected = fileClientView.getSelectionModel().getSelectedItem();//название файла
+                for(String str1 : DirORFile()) {
+                    if(str1.contains(fileSelected)) {
+                        try {
+                            String oldFileStr = Files.readString(currentDir.resolve(fileSelected));
+                            Files.delete(currentDir.resolve(fileSelected));
+                            Files.writeString(currentDir.resolve(fileSelected),oldFileStr + str);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+
+                }
+            }
+        });
+    }
     private void refreshServerView(List<String> names) {
         Platform.runLater(new Runnable() {
             @Override
@@ -526,9 +568,10 @@ public class Controller implements Initializable {
                     if(str.contains(item)) {
                         //выводить содержимое файла
                         try {
-                            // TODO: 29.10.2021 решить проблему с русским языком в файлах UPD наверное пофиксил, но проверить (может это проблема была только на маке?!)
+//                            проблема заключалась в том, что когда файл не создавалься в папке, я его переносили в нее, то там был не ютф для
+//                            .rtf файла, хз как это исправить или обработать КОРОЧЕ я просто поменял кодировку у файла при его создании (в textEditor на маке)
                             log.debug(String.valueOf(currentDir.resolve(item)));
-                            TextAreaDown.setText(Files.readString(currentDir.resolve(item), StandardCharsets.UTF_8));//по сути я тут и ничего и не менял, там и так в дефолте ютф8
+                            TextAreaDown.setText(Files.readString(currentDir.resolve(item), StandardCharsets.UTF_8));
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
