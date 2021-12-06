@@ -1,69 +1,121 @@
 package com;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-//import com.google.gson.Gson;
-//import com.google.gson.GsonBuilder;
 import org.json.JSONObject;
-
-
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
-    private final SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
-
-//    private final Path serverPathForAdmin = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ");
+//    private final Path serverPathForAdmin= Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ");
 //    private final Path serverPathForEmp = Paths.get("Server","rootServ/root");
 //    private Path currentPath = Paths.get("Server","rootServ/root");
 //    private final Path logPath = Paths.get("Server", "rootServ/log");
 //    private Path clientPath ;
-//    private final  Path logFilePath = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Server\\rootServ\\log\\lohJson.json");
+//    private final  Path logFilePath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ/log/lohJson.json");
+//    private final Path LoadFilesPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ/root/LoadFiles");
 
-    private final Path serverPathForAdmin= Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ");
-    private final Path serverPathForEmp = Paths.get("Server","rootServ/root");
-    private Path currentPath = Paths.get("Server","rootServ/root");
-    private final Path logPath = Paths.get("Server", "rootServ/log");
+    private static Path serverPathForAdmin;
+    private Path serverPathForEmp;
+    private Path currentPath;
+    private Path logPath;
     private Path clientPath ;
-    private final  Path logFilePath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ/log/lohJson.json");
-
-
-
+    private static Path logFilePath;
+    private static  Path LoadFilesPath;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         log.debug("Client connected!");
+        log.debug(System.getProperty("os.name"));
+        String currentUsersHomeDir = System.getProperty("user.home");
+        String otherFolder = currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir";
+        File path = new  File(otherFolder);
+        if (!path.exists()){
+            path.mkdir();
+        }
+        if(path.exists() && path.isDirectory()) {
+            String otherFolderROOT = currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir" + File.separator + "root";
+            File pathROOT = new File(otherFolderROOT);
+            if (!pathROOT.exists()) {
+                pathROOT.mkdir();
+            }
+            String otherFolderLOAD = currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir" + File.separator + "root" + File.separator + "LoadFiles";
+            File pathLoad = new File(otherFolderLOAD);
+            if (!pathLoad.exists()) {
+                pathLoad.mkdir();
+            }
+            LoadFilesPath = Path.of(otherFolderLOAD);
+            serverPathForEmp = Path.of(otherFolderROOT);
+            currentPath = Path.of(otherFolderROOT);
+            String otherFolderLOG = currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir" + File.separator + "log";
+            File pathLOG = new File(otherFolderLOG);
+            if (!pathLOG.exists()) {
+                pathLOG.mkdir();
+            }
+            String otherFileJSON = currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir" + File.separator + "log" + File.separator + "lohJson.json";
+//            try {
+//                String file = Files.readString(
+//                        Path.of(currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir" + File.separator + "log" + File.separator + "lohJson.json")
+//                );
+//                if(Files.size( Path.of(currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir"
+//                        + File.separator + "log" + File.separator + "lohJson.json"))==0){
+//                    otherFileJSON = currentUsersHomeDir + File.separator + "Desktop" + File.separator + "serverDir" + File.separator + "log" + File.separator + "lohJson.json";
+////                /Users/dmitrijpankratov/Desktop/coursework/Server/rootServ/log/defLog.json
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+            logFilePath = Path.of(otherFileJSON);
+            logPath = Path.of(otherFolderLOG);
+            serverPathForAdmin = Path.of(otherFolder);
+        }else{
+            log.debug("ERROR add rootDir");
+        }
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Command cmd) throws Exception {
         log.debug("Received command from client: {}", cmd.getType());
         switch (cmd.getType()) {
+            case LOAD_FILE ->{
+                LoadFile loadFile = (LoadFile) cmd;
+                Files.write(LoadFilesPath.resolve(loadFile.getName()),
+                        loadFile.getBytes());
+            }
             case FILE_MESSAGE -> {
                 FileMessage fileMessage = (FileMessage) cmd;
                 Files.write(
                         currentPath.resolve(fileMessage.getName()),
                         fileMessage.getBytes()
                 );
-                ctx.writeAndFlush(new ListResponse(currentPath));
+                ctx.writeAndFlush(new ListResponse(currentPath,LoadFilesPath));
                 log.debug("Received a file {} from the client", fileMessage.getName());
             }
             case FILE_REQUEST -> {
                 FileRequest fileRequest = (FileRequest) cmd;
                 String fileName = fileRequest.getName();
-                Path file = Paths.get(String.valueOf(currentPath), fileName);
-                ctx.writeAndFlush(new FileMessage(file));
-                log.debug("Send file {} to the client", fileName);
+                Path file = Paths.get(String.valueOf(currentPath), fileName);// тут ошибка когда пытаешься скачать файл,
+                // который выложили(хз нужно ли давать возможность качать файлы, которые выложили)
+                if(Files.exists(file) && !Files.isDirectory(file)){
+                    if(!fileName.equals("ВАШИ ФАЙЛЫ") && !fileName.equals("ВЫЛОЖЕННЫЕ ФАЙЛЫ")){
+                        ctx.writeAndFlush(new FileMessage(file));
+                        log.debug("Send file {} to the client", fileName);
+                    }
+                }
             }
             case LIST_REQUEST -> {
-                ctx.writeAndFlush(new ListResponse(currentPath));
+                ListRequest listRequest = (ListRequest) cmd;
+                if(listRequest.getStat()){
+                    ctx.writeAndFlush(new ListResponse(currentPath,LoadFilesPath));
+                }else {
+                    ctx.writeAndFlush(new ListResponse(currentPath));
+                }
                 ctx.writeAndFlush(new PathResponse(currentPath.toString()));
                 log.debug("Send list of files to the client");
             }
@@ -73,22 +125,22 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 File fileD = new File(String.valueOf(currentPath.resolve(fileN)));
                 fileD.delete();
                 System.out.println(fileN + " deleted..");
-                ctx.writeAndFlush(new ListResponse(currentPath));
+                ctx.writeAndFlush(new ListResponse(currentPath,LoadFilesPath));
                 ctx.writeAndFlush(new PathResponse(currentPath.toString()));
             }
             case AUTH_REQUEST -> {
                 AuthRequest authRequest = (AuthRequest) cmd;
                 String login = authRequest.getLogin();
                 String password = authRequest.getPassword();
-                String jsonFile = "lohJson.json";
-                JSONObject jsonObject = new JSONObject(Files.readString(logPath.resolve(jsonFile)));
+                JSONObject jsonObject = new JSONObject(Files.readString(logFilePath));
                 String post;
                 String main1,main2="";
                 AuthResponse authResponse = new AuthResponse();
                 if (jsonObject.has(login)) {
                     if (jsonObject.getJSONObject(login).getString("Password").equals(password)) {
                         post = jsonObject.getJSONObject(login).getString("Post");
-                        main1 =jsonObject.getJSONObject(login).getString("Main");
+                        main1 =jsonObject.getJSONObject(login).getString("Main");//должность вышестоящего
+                        //main2 - должность вышестоящего у main1(для автора это главный редакторы)
                         if(!main1.equals("")) {
                             main2=jsonObject.getJSONObject(main1).getString("Main");
                             if(!main2.equals("")){
@@ -114,14 +166,23 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                                 currentPath = clientPath;
                             }
                             case "DepartmentEditor"->{
-                                clientPath = serverPathForEmp.resolve(main1+"\\"+login);
+                                clientPath = serverPathForEmp.resolve(main1+"/"+login);
+                                if(!Files.exists(serverPathForEmp.resolve(main1))){
+                                    Files.createDirectory(serverPathForEmp.resolve(main1));
+                                }
                                 if (!Files.exists(clientPath)) {
                                     Files.createDirectory(clientPath);
                                 }
                                 currentPath = clientPath;
                             }
                             case "Author" ->{
-                                clientPath = serverPathForEmp.resolve(main2+"\\"+main1+"\\"+login);
+                                clientPath = serverPathForEmp.resolve(main2+"/"+main1+"/"+login);
+                                if(!Files.exists(serverPathForEmp.resolve(main2+"/"+main1))){
+                                    Files.createDirectory(serverPathForEmp.resolve(main2+"/"+main1));
+                                }
+                                if(!Files.exists(serverPathForEmp.resolve(main1))){
+                                    Files.createDirectory(serverPathForEmp.resolve(main1));
+                                }
                                 if (!Files.exists(clientPath)) {
                                     Files.createDirectory(clientPath);
                                 }
@@ -142,7 +203,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 if (Files.isDirectory(newPAth)) {
                     currentPath = newPAth;
                     log.debug("Send list of files and current directory to the client");
-                    ctx.writeAndFlush(new ListResponse(currentPath));
+                    ctx.writeAndFlush(new ListResponse(currentPath,LoadFilesPath));
                     ctx.writeAndFlush(new PathResponse(currentPath.toString()));
                 } else {
                     log.debug("{} is not a directory",request);
@@ -157,7 +218,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                     }
                 }
                 log.debug("Send list of files and current directory to the client");
-                ctx.writeAndFlush(new ListResponse(currentPath));
+                ctx.writeAndFlush(new ListResponse(currentPath,LoadFilesPath));
                 ctx.writeAndFlush(new PathResponse(currentPath.toString()));
             }
             case AUTH_OUT_REQUEST->{
@@ -166,15 +227,37 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                 ctx.writeAndFlush(new AuthOutResponse());
             }
             case UPDATE_DATE_FILE_REQUEST -> {
-                List<String> results = new ArrayList<>();
-                File[] files = new File(String.valueOf(currentPath)).listFiles();
-                assert files != null;
-                for (File file : files) {
-                    SimpleDateFormat sdf1 = new SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
-                    String format = sdf1.format(file.lastModified());
-                    results.add(format);
+                UpdateDateFileRequest updateDateFileRequest = (UpdateDateFileRequest) cmd;
+                if(updateDateFileRequest.getStat()) {
+                    List<String> results = new ArrayList<>();
+                    File[] fileLoads = new File(String.valueOf(LoadFilesPath)).listFiles();
+                    File[] files = new File(String.valueOf(currentPath)).listFiles();
+                    assert files != null;
+                    results.add("\n");
+                    for (File file : fileLoads) {
+                        SimpleDateFormat sdf1 = new SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+                        String format = sdf1.format(file.lastModified());
+                        results.add(format);
+                    }
+                    results.add("\n");
+                    results.add("\n");
+                    for (File file : files) {
+                        SimpleDateFormat sdf1 = new SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+                        String format = sdf1.format(file.lastModified());
+                        results.add(format);
+                    }
+                    ctx.writeAndFlush(new UpdateDateFileResponse(results));
+                }else {
+                    List<String> results = new ArrayList<>();
+                    File[] files = new File(String.valueOf(currentPath)).listFiles();
+                    assert files != null;
+                    for (File file : files) {
+                        SimpleDateFormat sdf1 = new SimpleDateFormat("dd.MM.yyyy 'в' HH:mm:ss");
+                        String format = sdf1.format(file.lastModified());
+                        results.add(format);
+                    }
+                    ctx.writeAndFlush(new UpdateDateFileResponse(results));
                 }
-                ctx.writeAndFlush(new UpdateDateFileResponse(results));
             }
             case UPDATE_JSON_FILE_REQUEST -> {
                 UpdateJsonFileRequest updateJsonFileRequest = (UpdateJsonFileRequest) cmd;
@@ -205,7 +288,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                         json.toString()
 //                        gson.toJson(json)//пока что не разобрался с gson(есть кое-какие проблемы)
                 );
-                ctx.writeAndFlush(new ListResponse(logPath));
+                ctx.writeAndFlush(new ListResponse(logPath,LoadFilesPath));
                 ctx.writeAndFlush(new PathResponse(logPath.toString()));
                 Files.delete(logPath.resolve(updateJsonFileRequest.getName()));
                 log.debug("Send log list of files to the client");
@@ -216,7 +299,7 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
                         Files.readString(logFilePath)
                 );
                 json.remove(deleteEmployee.getName());
-                ctx.writeAndFlush(new ListResponse(logPath));
+                ctx.writeAndFlush(new ListResponse(logPath,LoadFilesPath));
                 ctx.writeAndFlush(new PathResponse(logPath.toString()));
                 log.debug("Send log list of files to the client");
                 Files.delete(logFilePath);

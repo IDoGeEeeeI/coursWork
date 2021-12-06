@@ -7,7 +7,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -17,22 +21,18 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 //  можно добавит еще https://javadevblog.com/chtenie-dokumenta-word-v-formate-docx-s-pomoshh-yu-apache-poi.html
-//  ****************** после входа, или до можно выводить окно, где будешь устанавливать root папку
-
 
 @Slf4j
 public class Controller implements Initializable {
 
-//    private static Path currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");
-private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Client", "root");
-
-
+    private static Path currentDir;
     public AnchorPane Scene;
     public AnchorPane sceneLog;
     public  AnchorPane sceneMain;
@@ -53,22 +53,6 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
     @FXML
     private ListView<String> dataServer;
     @FXML
-    private MenuBar menuBar;
-    @FXML
-    private Menu menuFile;
-    @FXML
-    private Menu menuEdit;
-    @FXML
-    private Menu menuHelp;
-    @FXML
-    private MenuItem backLogin;
-    @FXML
-    private MenuItem updateServerMenu;
-    @FXML
-    private MenuItem updateClientMenu;
-    @FXML
-    private MenuItem deleteFile;
-    @FXML
     private Button DeleteFileBut;
     @FXML
     private Button DeleteFileServer;
@@ -76,12 +60,6 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
     private  TextField loginText;
     @FXML
     private  TextField passwordText;
-    @FXML
-    private  Button buttIN;
-    @FXML
-    private  Button upButtonClient;
-    @FXML
-    private  Button downButtonClient;
     @FXML
     private  Button upButtonServer;
     @FXML
@@ -108,17 +86,19 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
     private Button dellUser;
     @FXML
     private Menu helpMenu;
-    @FXML
-    private TextField pathSet;
+
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        log.debug(System.getProperty("os.name"));
-        if (System.getProperty("os.name").equals("Mac OS X")){//чисто для меня (пока что, просто удобнее работать на разных машинах с гитом), а так тут нужно будет поставить хотяб дефол - рабочий стол
-            currentDir=Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Client", "root");
-        }else {//p.s. тут только для мака и для винды
-            currentDir = Paths.get("C:\\Users\\Дмитрий\\Desktop\\coursWork-main\\Client", "root");
+        String currentUsersHomeDir = System.getProperty("user.home");
+        String otherFolder = currentUsersHomeDir + File.separator + "Desktop" + File.separator + "workDir";
+        File path = new  File(otherFolder);
+        if (!path.exists()){
+            path.mkdir();
         }
+        currentDir = Path.of(otherFolder);
+        log.debug(System.getProperty("os.name"));
         try {
             Platform.runLater(new Runnable() {
                 @Override
@@ -138,7 +118,9 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
                         case LIST_RESPONSE -> {
                             ListResponse listResponse = (ListResponse) cmd;
                             refreshServerView(listResponse.getList());
-                            net.sendCommand(new UpdateDateFileRequest());
+                            if(listResponse.getStat())
+                            net.sendCommand(new UpdateDateFileRequest(true));
+                            else net.sendCommand(new UpdateDateFileRequest(false));
                         }
                         case FILE_MESSAGE -> {
                             FileMessage fileMessage = (FileMessage) cmd;
@@ -164,8 +146,7 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
                                         enableButt(upButtonServer);
                                         enableButt(downButtonServer);
                                         enableButt(DeleteFileServer);
-                                        enableMenu();
-                                        net.sendCommand(new ListRequest());
+                                        net.sendCommand(new ListRequest(true));
                                     }
                                     case "Author" -> {
                                         enableScene(sceneMain);
@@ -176,7 +157,8 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
                                         enableButt(DeleteFileServer);
                                         disableSplitMenuButton(addUserSplit);
                                         disableButt(dellUser);
-                                        net.sendCommand(new ListRequest());
+                                        disableButt(loadTo);
+                                        net.sendCommand(new ListRequest(false));
                                     }
                                     case "ChiefEditor" -> {
                                         enableScene(sceneMain);
@@ -188,7 +170,7 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
                                         disableSplitMenuButton(addUserSplit);
                                         disableButt(dellUser);
                                         enableButt(loadTo);
-                                        net.sendCommand(new ListRequest());
+                                        net.sendCommand(new ListRequest(true));
                                     }
                                     case "DepartmentEditor" -> {
                                         enableScene(sceneMain);
@@ -198,7 +180,8 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
                                         enableButt(DeleteFileServer);
                                         disableSplitMenuButton(addUserSplit);
                                         disableButt(dellUser);
-                                        net.sendCommand(new ListRequest());
+                                        disableButt(loadTo);
+                                        net.sendCommand(new ListRequest(false));
                                     }
                                     default -> log.debug("Invalid authCommand {}", cmd.getType());
                                 }
@@ -267,22 +250,6 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
             }
         });
     }
-    public  void  setPathWhileLogin(){
-        String str =  pathSet.getText();
-        buttIN.setOnMouseClicked(e->{
-            if(e.getClickCount()==1){
-                if(pathSet != null){ // TODO: 22.11.2021  короче я еще не знаю как это по дизайну сделать, пока что в раздумьях 
-                    // todo думаю просто поменять дефолт папки на рабочий стол и все
-                    //  (можно сделать как clientview, тип будет список папок, и там выбирать куда хочешь поставить)
-                    currentDir = Paths.get(str);
-                    log.debug(currentDir.toString());
-                    pathSet.clear();
-                }
-            }
-        });
-
-    }
-
     public  void logOut(ActionEvent actionEvent){
         net.sendCommand(new AuthOutRequest());
     }
@@ -293,10 +260,6 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
         loginText.clear();
         passwordText.clear();
         net.sendCommand(new AuthRequest(login, password));
-    }
-
-    public void updateServer() {
-        net.sendCommand(new ListRequest());
     }
 
     public void updateClient() throws IOException {
@@ -403,6 +366,19 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+    public void loadFileTo(){
+        loadTo.setOnMouseClicked(e->{
+            if (e.getClickCount()==1){
+                String item = fileClientView.getSelectionModel().getSelectedItem();
+                Path newPath = currentDir.resolve(item);
+                try {
+                    net.sendCommand(new LoadFile(newPath));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 
     public void deleteFile(){
@@ -544,15 +520,24 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
         });
     }
 
-    public void updateDateClient(ActionEvent actionEvent) {//для кнопок(если будут нужны)
-        dataClientUpdate();
-        log.debug("Update Date Client List");
+    public boolean regexMatchesDocx(String str) {
+        String pattern = "^[A-Za-z0-9+_.-]+(.docx)$";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(str);
+        return m.matches();
     }
-    public  void updateDateServer(ActionEvent actionEvent){
-        net.sendCommand(new UpdateDateFileRequest());
-        log.debug("Update Date Server List");
+    public boolean regexMatchesTxt(String str){
+        String pattern = "^[A-Za-z0-9+_.-]+(.txt)$";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(str);
+        return m.matches();
     }
-
+    public boolean regexMatchesRtf(String str){
+        String pattern = "^[A-Za-z0-9+_.-]+(.rtf)$";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(str);
+        return m.matches();
+    }
 
     public void addNavigationListener() {
         fileServerView.setOnMouseClicked(e -> {
@@ -566,15 +551,35 @@ private static Path currentDir = Paths.get("/Users/dmitrijpankratov/Desktop/cour
                 String item = fileClientView.getSelectionModel().getSelectedItem();
                 for(String str : DirORFile()) {
                     if(str.contains(item)) {
-                        //выводить содержимое файла
-                        try {
-//                            проблема заключалась в том, что когда файл не создавалься в папке, я его переносили в нее, то там был не ютф для
-//                            .rtf файла, хз как это исправить или обработать КОРОЧЕ я просто поменял кодировку у файла при его создании (в textEditor на маке)
-                            log.debug(String.valueOf(currentDir.resolve(item)));
-                            TextAreaDown.setText(Files.readString(currentDir.resolve(item), StandardCharsets.UTF_8));
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
+                        if(regexMatchesDocx(item)){//word
+                            try {
+//                                File file = new File("/Users/dmitrijpankratov/Desktop/workDir/rrrr.docx");
+                                File file = new File(String.valueOf(currentDir.resolve(item)));
+                                FileInputStream fis = new FileInputStream(file);
+                                XWPFDocument document = new XWPFDocument(fis);
+                                List<XWPFParagraph> paragraphs = document.getParagraphs();
+                                for (XWPFParagraph para : paragraphs) {
+                                    TextAreaDown.setText(para.getText());
+                                }
+                                log.debug(String.valueOf(currentDir.resolve(item)));
+                                fis.close();
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }else if(regexMatchesTxt(item)){//txt
+                            //выводить содержимое файла
+                            try {
+                                log.debug(String.valueOf(currentDir.resolve(item)));
+                                TextAreaDown.setText(Files.readString(currentDir.resolve(item), StandardCharsets.UTF_8));
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
+                        }else if(regexMatchesRtf(item)){//rtf
+// TODO: 03.12.2021 я хз как правильно это сделать(может забью)
                         }
+
+                    }else{
+                        continue;
                     }
 
                 }

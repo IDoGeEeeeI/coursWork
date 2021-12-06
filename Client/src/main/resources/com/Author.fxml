@@ -8,6 +8,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.TextArea?>
@@ -50,7 +51,7 @@
                         <Button fx:id="DeleteFileBut" mnemonicParsing="false" onAction="#deleteFile" prefHeight="7.0" prefWidth="159.0" text="Delete" />
                            <Button fx:id="upButtonClient" mnemonicParsing="false" onAction="#clientPathUp" prefHeight="26.0" prefWidth="142.0" text="up" />
                            <Button fx:id="downButtonClient" mnemonicParsing="false" onAction="#clientPathIn" prefHeight="26.0" prefWidth="170.0" text="down" />
-                           <Button fx:id="loadTo" mnemonicParsing="false" prefHeight="26.0" prefWidth="156.0" text="loadTo" />
+                           <Button fx:id="loadTo" mnemonicParsing="false" onAction="#loadFileTo" prefHeight="26.0" prefWidth="156.0" text="loadTo" />
                      </children>
                   </VBox>
                </children>
@@ -64,7 +65,7 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="340.0" prefWidth="986.0">
                      <children>
                         <TextArea fx:id="TextAreaDown" layoutX="-4.0" layoutY="-7.0" prefHeight="349.0" prefWidth="994.0" />
-                           <Button fx:id="saveText" layoutX="920.0" layoutY="276.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="52.0" text="save" />
+                           <Button fx:id="saveText" layoutX="920.0" layoutY="276.0" mnemonicParsing="false" onAction="#saveTextInfile" prefHeight="50.0" prefWidth="52.0" text="save" />
                            <Button fx:id="cleanText" layoutX="920.0" layoutY="222.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="52.0" text="clean" />
                            <SplitMenuButton fx:id="addUserSplit" layoutX="783.0" layoutY="276.0" mnemonicParsing="false" onAction="#addUser" prefHeight="50.0" text="addUsers">
                              <items>
@@ -132,43 +133,14 @@
           </Menu>
           <Menu fx:id="menuHelp" mnemonicParsing="false" text="Update">
             <items>
-              <MenuItem fx:id="updateServerMenu" mnemonicParsing="false" onAction="#updateServer" text="Server" />
+              <MenuItem fx:id="updateServerMenu" disable="true" mnemonicParsing="false" text="Server" visible="false">
+                        <graphic>
+                           <RadioButton fx:id="radioButtServer" mnemonicParsing="false" />
+                        </graphic></MenuItem>
                      <MenuItem fx:id="updateClientMenu" mnemonicParsing="false" onAction="#updateClient" text="Client" />
             </items>
           </Menu>
-               <Menu mnemonicParsing="false" text="Help">
-                 <items>
-                   <MenuItem mnemonicParsing="false">
-                        <graphic>
-                           <MenuButton mnemonicParsing="false" prefWidth="80.0" style="-fx-background-color: #fff;" text="addUser">
-                             <items>
-                               <MenuItem mnemonicParsing="false">
-                                    <graphic>
-                                       <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" text="{&quot;Author4&quot;: {      &quot;Password&quot;:A &quot;Author4&quot;,      &quot;Post&quot;: &quot;Author&quot;,      &quot;Main&quot;: &quot;DepartmentEditor2&quot;,      &quot;data&quot;: {        &quot;surname&quot;: &quot;Иванченко&quot;,        &quot;name&quot;: &quot;Василий&quot;,        &quot;gender&quot;: &quot;MALE&quot;      }    }}                                                    пример текста для добавления, затем в кнопке пишем id(такое же как и в тексте: автор4 - значит 4) и в списке выбираем его должность(такую же как и в тексте)" wrapText="true">
-                                          <font>
-                                             <Font size="11.0" />
-                                          </font></TextArea>
-                                    </graphic>
-                                 </MenuItem>
-                             </items>
-                           </MenuButton>
-                        </graphic>
-                     </MenuItem>
-                     <MenuItem mnemonicParsing="false">
-                        <graphic>
-                           <MenuButton mnemonicParsing="false" prefWidth="80.0" style="-fx-background-color: #fff;" text="delUser">
-                             <items>
-                               <MenuItem mnemonicParsing="false">
-                                    <graphic>
-                                       <TextArea prefHeight="200.0" prefWidth="200.0" text="Author4    - написать и нажать 2 раза на кнопку удалить" wrapText="true" />
-                                    </graphic></MenuItem>
-                             </items>
-                           </MenuButton>
-                        </graphic>
-                     </MenuItem>
-                 </items>
-               </Menu>
-               <Menu fx:id="helpMenu" disable="true" mnemonicParsing="false" text="Help" visible="false">
+               <Menu fx:id="helpMenu" mnemonicParsing="false" text="Help">
                   <items>
                      <MenuItem mnemonicParsing="false">
                         <graphic>
@@ -205,7 +177,7 @@
         </menus>
       </MenuBar>
       </AnchorPane>
-    <AnchorPane fx:id="sceneLog" layoutX="250.0" layoutY="200.0" prefHeight="230.0" prefWidth="500.0">
+    <AnchorPane fx:id="sceneLog" layoutX="250.0" layoutY="200.0" prefHeight="231.0" prefWidth="473.0">
         <children>
             <TextField fx:id="loginText" layoutX="62.0" layoutY="20.0" prefHeight="62.0" prefWidth="236.0" promptText="login" />
             <TextField fx:id="passwordText" layoutX="62.0" layoutY="111.0" prefHeight="62.0" prefWidth="236.0" promptText="password" />

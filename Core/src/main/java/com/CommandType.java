@@ -15,6 +15,7 @@ public enum CommandType {
     AUTH_OUT_REQUEST,//Класс-команда для запроса аутентификации
     UPDATE_DATE_FILE_REQUEST,//Класс-команда для запроса даты изменения файлов
     UPDATE_DATE_FILE_RESPONSE,//Класс-команда для отправки даты изменения файлов
-    UPDATE_JSON_FILE_REQUEST,
-    DELETE_EMPLOYEE
+    UPDATE_JSON_FILE_REQUEST,//Класс-команда для добавления работника в файл, хранящего информацию о работниках
+    DELETE_EMPLOYEE,//Класс-команда для запроса удаления работника из бд
+    LOAD_FILE,//Класс-команда для отправки файла, который готов к публикации
 }
