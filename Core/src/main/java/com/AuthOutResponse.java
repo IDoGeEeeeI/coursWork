@@ -1,5 +1,7 @@
 package com;
-
+/**
+ * Класс-команда для отправки статуса аутентификации.
+ */
 public class AuthOutResponse extends  Command{
     private boolean authOutStatus;
 

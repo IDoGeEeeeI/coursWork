@@ -1,5 +1,9 @@
 package com;
-
+/**
+ * Класс-команда для запроса удаления работника из бд.
+ * Поля:
+ * name - имя(логин пользователя)
+ */
 public class DeleteEmployee extends  Command {
 
     private final String name;

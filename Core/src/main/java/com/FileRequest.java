@@ -2,7 +2,11 @@ package com;
 
 
 import java.nio.file.Path;
-
+/**
+ * Класс-команда для запроса отправки файла с сервера на клиент.
+ * Поля:
+ * name - название файла
+ */
 public class FileRequest extends Command {
     private final String name;
 

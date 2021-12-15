@@ -10,7 +10,9 @@ import javafx.stage.Stage;
 import java.util.Objects;
 
 public class App extends Application {
-
+    /**
+     * Главный класс для запуска приложения и открытия окна ввода логина и пароля.
+     */
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent parent = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Author.fxml")));

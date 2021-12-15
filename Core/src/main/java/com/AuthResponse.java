@@ -1,5 +1,10 @@
 package com;
-
+/**
+ * Класс-команда для передачи данных аккаунта пользователя.
+ * Поля:
+ * authStatus - статус входа;
+ * post - пост сотрудника;
+ */
 public class AuthResponse extends Command{
 
     private boolean authStatus;

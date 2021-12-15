@@ -12,6 +12,10 @@ import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Клас для запуска сервера.
+ */
+
 @Slf4j
 public class NettyServer {
     public NettyServer() {
@@ -36,7 +40,9 @@ public class NettyServer {
                     .bind(8189)
                     .sync();
             log.debug("Server started...");
-            channelFuture.channel().closeFuture().sync(); // block
+//            channelFuture.channel().close();
+                channelFuture.channel().closeFuture().sync(); // block
+
         }catch (Exception e) {
             log.error("Server exception: Stacktrace: ", e);
         } finally {

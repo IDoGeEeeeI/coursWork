@@ -1,4 +1,10 @@
 package com;
+/**
+ * Класс-команда для запроса на вход.
+ * Поля:
+ * login - логин;
+ * password - пароль;
+ */
 
 public class AuthRequest extends Command {
     public AuthRequest(String login, String password) {

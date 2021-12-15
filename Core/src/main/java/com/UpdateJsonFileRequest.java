@@ -4,7 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-
+/**
+ * Класс-команда для добавления работника в файл, хранящего информацию о работниках.
+ * Поля:
+ * name - название файла
+ * bytes - байты файла
+ * post - пост работника
+ * idP - id работника
+ */
 public class UpdateJsonFileRequest extends Command{
 
 

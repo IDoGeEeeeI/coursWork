@@ -1,0 +1,12 @@
+{
+    "Admin":{
+      "Password": "Admin",
+      "Post": "Admin",
+      "Main": "",
+      "data": {
+        "surname": "Иванов",
+        "name": "Антон",
+        "gender": "MALE"
+      }
+    }
+}

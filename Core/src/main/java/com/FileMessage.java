@@ -3,7 +3,12 @@ package com;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
+/**
+ * Класс-команда для отправки файла c сервера на клиент или с клиента на сервер.
+ * Поля:
+ * name - название файла
+ * byte - байты файла
+ */
 public class FileMessage extends Command {
 
     private final String name;

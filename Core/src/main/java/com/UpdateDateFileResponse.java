@@ -1,12 +1,11 @@
 package com;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * Класс-команда для отправки даты изменения файлов.
+ * Поля:
+ * res - список дат
+ */
 public class UpdateDateFileResponse extends Command{
 
     private List<String> res;

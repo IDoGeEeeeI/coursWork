@@ -1,7 +1,6 @@
 package com;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,16 +9,19 @@ import org.json.JSONObject;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
-
+/**
+ * Клас обработчик сервера(обрабатывает приходящие команды).
+ * Поля:
+ * serverPathForAdmin - полный путь к папке сервера(для админа, из-за этого он может перемещаться по директориям сервера без преград)
+ * serverPathForEmp - путь папке сервера(но не абсолютный)
+ * currentPath - пут к текущий папка на сервере
+ * logPath - пут к папке в которой хранится json файл
+ * clientPath - путь к папке пользователя
+ * logFilePath - путь к файлу хранящего данные о пользователях
+ * LoadFilesPath - путь к папке, хранящей файлы готовые к публикации
+ */
 @Slf4j
 public class FileMessageHandler extends SimpleChannelInboundHandler<Command> {
-//    private final Path serverPathForAdmin= Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ");
-//    private final Path serverPathForEmp = Paths.get("Server","rootServ/root");
-//    private Path currentPath = Paths.get("Server","rootServ/root");
-//    private final Path logPath = Paths.get("Server", "rootServ/log");
-//    private Path clientPath ;
-//    private final  Path logFilePath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ/log/lohJson.json");
-//    private final Path LoadFilesPath = Paths.get("/Users/dmitrijpankratov/Desktop/coursework/Server/rootServ/root/LoadFiles");
 
     private static Path serverPathForAdmin;
     private Path serverPathForEmp;

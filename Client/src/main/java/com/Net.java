@@ -11,12 +11,13 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import lombok.extern.slf4j.Slf4j;
-
+/**
+ * Класс для настройки подключения клиента к серверу
+ */
 @Slf4j
 public class Net {
 
     private static Net INSTANCE;
-
     private final Callback callback;
     private SocketChannel channel;
 
@@ -32,7 +33,6 @@ public class Net {
 
         Thread thread = new Thread(() -> {
             EventLoopGroup group = new NioEventLoopGroup();
-
             try {
                 Bootstrap bootstrap = new Bootstrap();
                 bootstrap.group(group)
@@ -51,6 +51,7 @@ public class Net {
 
                 ChannelFuture future = bootstrap.connect("localhost", 8189).sync();
                 log.debug("Client Connected..");
+//                sendCommand(new ListRequest());
                 future.channel().closeFuture().sync(); // block
             } catch (Exception e) {
                 log.error("", e);

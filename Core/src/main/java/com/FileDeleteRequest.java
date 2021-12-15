@@ -1,7 +1,11 @@
 package com;
 
 import java.nio.file.Path;
-
+/**
+ * Класс-команда для запроса удаления с сервера.
+ * Поля:
+ * name - название файла
+ */
 public class FileDeleteRequest extends  Command{
     private final String name;
 

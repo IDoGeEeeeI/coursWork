@@ -10,7 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-
+/**
+ * Класс-команда для передачи списка файлов и папок в текущей директории сервера.
+ * Поля:
+ * stat - статус для вывода разной информации (полной или не полной)
+ * list - список файлов на сервере(файлы клиента)
+ * listL - список файлов, которые были одобрены и готовы в публикации.
+ * newList - объединенный список файлов(который уже отправляется клиенту)
+ */
 public class ListResponse extends Command {
 
     private boolean stat;
